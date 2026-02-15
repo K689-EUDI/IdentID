@@ -127,8 +127,7 @@ object RequestTransformer {
                 is ExpandableListItemUi.SingleListItem -> {
                     val isSelected =
                         header.trailingContentData is ListItemTrailingContentDataUi.Checkbox &&
-                                (header.trailingContentData as ListItemTrailingContentDataUi.Checkbox)
-                                    .checkboxData.isChecked
+                                header.trailingContentData.checkboxData.isChecked
                     if (isSelected) listOf(this) else emptyList()
                 }
 
