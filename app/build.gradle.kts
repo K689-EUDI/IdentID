@@ -151,7 +151,7 @@ android {
 
     // KSP generated sources for Koin
     sourceSets.all {
-        kotlin.srcDir("build/generated/ksp/$name/kotlin")
+        kotlin.directories.add("build/generated/ksp/$name/kotlin")
     }
 }
 
@@ -266,4 +266,15 @@ dependencies {
 
     // Blur effect
     implementation(libs.compose.cloudy)
+
+    // Test
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+
+    // Debug
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
