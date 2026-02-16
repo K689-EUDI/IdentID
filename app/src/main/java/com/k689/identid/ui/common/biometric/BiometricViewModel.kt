@@ -117,9 +117,22 @@ class BiometricViewModel(
     override fun handleEvents(event: Event) {
         when (event) {
             is Event.Init -> {
-                if (biometricUiConfig.shouldInitializeBiometricAuthOnCreate && viewState.value.userBiometricsAreEnabled) {
-                    setEffect {
-                        Effect.InitializeBiometricAuthOnCreate
+                if (biometricUiConfig.shouldInitializeBiometricAuthOnCreate) {
+                    if (viewState.value.userBiometricsAreEnabled) {
+                        setEffect {
+                            Effect.InitializeBiometricAuthOnCreate
+                        }
+                    } else {
+                        // Auto-enable biometrics if the device supports them
+                        biometricInteractor.getBiometricsAvailability { availability ->
+                            if (availability is BiometricsAvailability.CanAuthenticate) {
+                                biometricInteractor.storeBiometricsUsageDecision(true)
+                                setState { copy(userBiometricsAreEnabled = true) }
+                                setEffect {
+                                    Effect.InitializeBiometricAuthOnCreate
+                                }
+                            }
+                        }
                     }
                 }
             }
