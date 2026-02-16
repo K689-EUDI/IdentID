@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - uses: actions/checkout@v6
@@ -33,17 +33,9 @@ jobs:
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
 
-      # Run Build Project
-      - name: Build gradle project
-        run: ./gradlew build --configuration-cache
-
-      # Create APK Debug
-      - name: Build apk debug project (APK)
-        run: ./gradlew assembleDebug
-
-        # Create APK Release
-      - name: Build apk release project (APK)
-        run: ./gradlew assemble
+      # Build project and assemble APKs in a single Gradle invocation
+      - name: Build project
+        run: ./gradlew build --configuration-cache --parallel --build-cache
 
       # Upload Artifact Build
       - name: Upload Debug Apk
@@ -57,4 +49,4 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: apk-release.zip
-          path: app/build/outputs/apk/release/app-release.apk
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
