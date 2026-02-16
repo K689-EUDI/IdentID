@@ -41,9 +41,20 @@ jobs:
       - name: Build apk debug project (APK)
         run: ./gradlew assembleDebug
 
+        # Create APK Release
+      - name: Build apk release project (APK)
+        run: ./gradlew assemble
+
       # Upload Artifact Build
       - name: Upload Debug Apk
         uses: actions/upload-artifact@v6
         with:
           name: apk-debug.zip
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      # Upload Artifact Build
+      - name: Upload Release Apk
+        uses: actions/upload-artifact@v6
+        with:
+          name: apk-release.zip
+          path: app/build/outputs/apk/release/app-release.apk
