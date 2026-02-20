@@ -1,12 +1,9 @@
 package com.k689.identid.ui.dashboard.preferences
 
-import android.system.Os.stat
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -15,9 +12,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.k689.identid.theme.AppTheme
+import com.k689.identid.ui.component.ListItemDataUi
+import com.k689.identid.ui.component.ListItemMainContentDataUi
+import com.k689.identid.ui.component.ListItemTrailingContentDataUi
 import com.k689.identid.ui.component.content.ContentScreen
 import com.k689.identid.ui.component.content.ContentTitle
 import com.k689.identid.ui.component.content.ScreenNavigateAction
+import com.k689.identid.ui.component.wrap.RadioButtonDataUi
+import com.k689.identid.ui.component.wrap.WrapListItem
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
@@ -48,18 +50,34 @@ fun PreferencesScreen(
                     .padding(paddingValues),
         ) {
             ContentTitle(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 title = state.screenTitle,
             )
-            Row {
-                AppTheme.entries.forEach { theme ->
-                    Button(
-                        onClick = { viewModel.setEvent(Event.OnThemeSelected(theme)) },
-                        modifier = Modifier.padding(horizontal = 4.dp),
-                    ) {
-                        androidx.compose.material3.Text(text = theme.name)
-                    }
-                }
+            AppTheme.entries.onEach { theme ->
+                val isSelected = theme == state.selectedTheme
+                WrapListItem(
+                    item =
+                        ListItemDataUi(
+                            itemId = theme.name,
+                            mainContentData =
+                                ListItemMainContentDataUi.Text(theme.name),
+                            trailingContentData =
+                                ListItemTrailingContentDataUi.RadioButton(
+                                    RadioButtonDataUi(
+                                        isSelected = isSelected,
+                                        onCheckedChange = {
+                                            viewModel.setEvent(
+                                                Event.OnThemeSelected(
+                                                    theme,
+                                                ),
+                                            )
+                                        },
+                                    ),
+                                ),
+                        ),
+                    modifier = Modifier.padding(8.dp),
+                    onItemClick = { viewModel.setEvent(Event.OnThemeSelected(theme)) },
+                )
             }
         }
     }
