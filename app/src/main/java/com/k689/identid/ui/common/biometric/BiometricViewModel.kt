@@ -134,6 +134,15 @@ class BiometricViewModel(
     }
 
     override fun handleEvents(event: Event) {
+        if (viewState.value.authAttempts >= MAX_AUTH_ATTEMPTS) {
+            setState {
+                copy(
+                    quickPinError = resourceProvider.getString(R.string.login_max_attempts_exceeded_error_message),
+                    authAttempts = authAttempts,
+                )
+            }
+            return
+        }
         when (event) {
             is Event.Init -> {
                 if (biometricUiConfig.shouldInitializeBiometricAuthOnCreate) {
@@ -252,8 +261,13 @@ class BiometricViewModel(
                             } else {
                                 setState {
                                     copy(
-                                        quickPinError = resourceProvider.getString(R.string.login_pin_invalid_error, MAX_AUTH_ATTEMPTS - authAttempts),
-                                        authAttempts = authAttempts + 1,
+                                        quickPinError =
+                                            resourceProvider.getString(R.string.quick_pin_invalid_error) + ' ' +
+                                                resourceProvider.getString(
+                                                    R.string.login_attempts_remaining_message,
+                                                    MAX_AUTH_ATTEMPTS - authAttempts,
+                                                ),
+                                        authAttempts = authAttempts,
                                     )
                                 }
                             }
@@ -276,11 +290,21 @@ class BiometricViewModel(
         ) {
             when (it) {
                 is BiometricsAuthenticate.Success -> {
-                    authenticationSuccess()
+                    if (viewState.value.authAttempts < MAX_AUTH_ATTEMPTS) {
+                        authenticationSuccess()
+                    }
                 }
 
                 is BiometricsAuthenticate.Failed -> {
-                    // TODO: Add to add to max login attempts later
+                    val authAttempts = viewState.value.authAttempts + 1
+                    setState {
+                        copy(
+                            authAttempts = authAttempts,
+                            quickPinError =
+                                resourceProvider.getString(R.string.quick_pin_invalid_error) + ' ' +
+                                    resourceProvider.getString(R.string.login_attempts_remaining_message, MAX_AUTH_ATTEMPTS - authAttempts),
+                        )
+                    }
                 }
 
                 else -> {}

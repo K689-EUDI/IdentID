@@ -135,6 +135,7 @@
 
     <!-- region Login Authentication -->
     <string name="login_max_attempts_exceeded_error_message">Maximum number of attempts exceeded. Please try again in %1$d seconds.</string>
+    <string name="login_attempts_remaining_message">You have %1$d attempts left.</string>
     <!--endregion-->
 
     <!-- region Biometrics -->
@@ -152,7 +153,6 @@
     <!--endregion-->
 
     <!-- region Pin -->
-    <string name="login_pin_invalid_error">Invalid pin. You have %1$d attempts left.</string>
     <string name="quick_pin_invalid_error">Invalid pin.</string>
     <string name="quick_pin_numerical_rule_invalid_error_message">Only numerical values are allowed</string>
     <string name="quick_pin_non_match">Pins do not match</string>

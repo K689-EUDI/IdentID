@@ -127,6 +127,7 @@
 
     <!-- region Login Authentication -->
     <string name="login_max_attempts_exceeded_error_message">Per daug kartų suvedėte neteisinga PIN kodą. Bandykite vėl už %1$d sekundžių.</string>
+    <string name="login_attempts_remaining_message">Liko %1$d bandymai.</string>
     <!--endregion-->
 
     <!-- region Biometric prompt -->
@@ -152,7 +153,6 @@
     <!--endregion-->
 
     <!-- region Pin -->
-    <string name="login_pin_invalid_error">Neteisingas PIN kodas. Liko %1$d bandymų.</string>
     <string name="quick_pin_invalid_error">Netinkamas PIN kodas.</string>
     <string name="quick_pin_numerical_rule_invalid_error_message">Leidžiamos tik skaitinės reikšmės</string>
     <string name="quick_pin_non_match">PIN kodai nesutampa</string>
