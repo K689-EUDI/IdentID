@@ -163,7 +163,9 @@
 
     <string name="quick_pin_create_success_text">Jūsų piniginė apsaugota!</string>
     <string name="quick_pin_create_success_description">Norėdami aktyvuoti piniginę, prisijunkite prie nacionalinės sistemos ir pridėkite skaitmeninį tapatybės dokumentą.</string>
+    <string name="quick_pin_create_success_no_activation_description">Jūsų piniginė paruošta naudojimui.</string>
     <string name="quick_pin_create_success_btn">Pridėti skaitmeninę tapatybę</string>
+    <string name="quick_pin_create_success_no_activation_btn">EITI Į PRADŽIĄ</string>
     <string name="quick_pin_change_success_text">@string/generic_success</string>
     <string name="quick_pin_change_success_description">PIN kodas sėkmingai pakeistas</string>
     <string name="quick_pin_change_success_btn">GRĮŽTI Į PRADŽIĄ</string>

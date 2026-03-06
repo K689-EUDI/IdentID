@@ -16,6 +16,7 @@
 
 package com.k689.identid.interactor.dashboard
 
+import com.k689.identid.config.ConfigLogic
 import com.k689.identid.controller.core.DeleteAllDocumentsPartialState
 import com.k689.identid.controller.core.DeleteDocumentPartialState
 import com.k689.identid.controller.core.WalletCoreDocumentsController
@@ -99,6 +100,7 @@ class DocumentDetailsInteractorImpl(
     private val walletCoreDocumentsController: WalletCoreDocumentsController,
     private val resourceProvider: ResourceProvider,
     private val uuidProvider: UuidProvider,
+    private val configLogic: ConfigLogic,
 ) : DocumentDetailsInteractor {
     private val genericErrorMsg
         get() = resourceProvider.genericErrorMessage()
@@ -167,7 +169,9 @@ class DocumentDetailsInteractorImpl(
             val docIdentifier = docType?.toDocumentIdentifier()
 
             val shouldDeleteAllDocuments: Boolean =
-                if (docIdentifier == DocumentIdentifier.MdocPid || docIdentifier == DocumentIdentifier.SdJwtPid) {
+                if (configLogic.forcePidActivation
+                    && (docIdentifier == DocumentIdentifier.MdocPid || docIdentifier == DocumentIdentifier.SdJwtPid)
+                ) {
                     val allPidDocuments =
                         walletCoreDocumentsController.getAllDocumentsByType(
                             documentIdentifiers =
