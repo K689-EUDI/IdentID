@@ -121,8 +121,11 @@ class MoveWalletViewModel(
                         }
 
                         is MoveWalletPartialState.ConnectionInitiated -> {
-                            // Auto-accept connection for simplicity
-                            interactor.acceptConnection(context, state.endpointId)
+                            if (viewState.value.connectedEndpointId == null) {
+                                interactor.acceptConnection(context, state.endpointId)
+                            } else {
+                                interactor.rejectConnection(context, state.endpointId)
+                            }
                         }
 
                         is MoveWalletPartialState.Connected -> {
@@ -149,7 +152,7 @@ class MoveWalletViewModel(
                                         ContentErrorConfig(
                                             onRetry = { setEvent(MoveWalletEvent.Init(context)) },
                                             errorSubTitle = state.message,
-                                            onCancel = { setEffect { MoveWalletEffect.Navigation.Pop } },
+                                            onCancel = { cleanUp(context); setEffect { MoveWalletEffect.Navigation.Pop } },
                                         ),
                                 )
                             }

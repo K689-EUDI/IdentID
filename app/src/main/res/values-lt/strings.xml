@@ -446,6 +446,13 @@
     <string name="transfer_import_complete_subtitle">Jūsų dokumentai buvo apdoroti</string>
     <string name="transfer_import_status_success">Sėkmingai importuota</string>
     <string name="transfer_import_done_button" tools:ignore="ButtonCase">BAIGTA</string>
+    <string name="transfer_receive_qr_permission_denied_message">Norint perduoti duomenis netolimuose įrenginiuose, reikalingas vietos nustatymo leidimas. Suteikite jį nustatymuose.</string>
+    <string name="transfer_receive_qr_open_settings">Atidaryti nustatymus</string>
+    <string name="transfer_error_invalid_qr">Neteisingas QR kodas. Bandykite dar kartą.</string>
+    <string name="transfer_error_connection_lost">Ryšys prarastas. Bandykite dar kartą.</string>
+    <string name="transfer_error_import_failed">Importavimas nepavyko. Bandykite dar kartą.</string>
+    <string name="transfer_error_no_connection">Nėra aktyvaus ryšio. Bandykite dar kartą.</string>
+    <string name="transfer_error_transfer_failed">Perkėlimas nepavyko. Bandykite dar kartą.</string>
     <!--endregion-->
 
     <!-- region Presentation Qr Scan -->
@@ -521,4 +528,5 @@
     <string name="transaction_category_this_week">ŠIĄ SAVAITĘ</string>
     <string name="transaction_category_month_year">MĖNUO</string>
     <!--endregion-->
+    <string name="engagement_aid_group_desc">EUDI piniginės NFC įtraukimas</string>
 </resources>

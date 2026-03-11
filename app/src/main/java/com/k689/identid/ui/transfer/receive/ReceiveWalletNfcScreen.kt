@@ -71,7 +71,7 @@ fun ReceiveWalletNfcScreen(
     ContentScreen(
         isLoading = false,
         navigatableAction = ScreenNavigateAction.BACKABLE,
-        onBack = { viewModel.setEvent(ReceiveWalletEvent.GoBack) },
+        onBack = { viewModel.setEvent(ReceiveWalletEvent.GoBack(context)) },
         contentErrorConfig = state.error,
     ) { paddingValues ->
         Content(

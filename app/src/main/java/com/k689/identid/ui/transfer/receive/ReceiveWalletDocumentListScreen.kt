@@ -64,7 +64,7 @@ fun ReceiveWalletDocumentListScreen(
     ContentScreen(
         isLoading = state.isImporting,
         navigatableAction = ScreenNavigateAction.BACKABLE,
-        onBack = { viewModel.setEvent(ReceiveWalletEvent.GoBack) },
+        onBack = { viewModel.setEvent(ReceiveWalletEvent.GoBack(context)) },
         contentErrorConfig = state.error,
         broadcastAction =
             BroadcastAction(

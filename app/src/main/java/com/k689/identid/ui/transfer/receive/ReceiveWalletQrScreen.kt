@@ -146,7 +146,7 @@ fun ReceiveWalletQrScreen(
     ContentScreen(
         isLoading = false,
         navigatableAction = ScreenNavigateAction.BACKABLE,
-        onBack = { viewModel.setEvent(ReceiveWalletEvent.GoBack) },
+        onBack = { viewModel.setEvent(ReceiveWalletEvent.GoBack(context)) },
         contentErrorConfig = state.error,
     ) { paddingValues ->
         when {
@@ -377,14 +377,14 @@ private fun PermissionDeniedContent(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Location permission is required for nearby device transfer. Please grant it in Settings.",
+                    text = stringResource(id = R.string.transfer_receive_qr_permission_denied_message),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(modifier = Modifier.height(SPACING_MEDIUM.dp))
                 Button(onClick = onOpenSettings) {
-                    Text(text = "Open Settings")
+                    Text(text = stringResource(id = R.string.transfer_receive_qr_open_settings))
                 }
             }
         }

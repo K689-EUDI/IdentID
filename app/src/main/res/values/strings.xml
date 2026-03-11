@@ -528,6 +528,15 @@
     <string name="transfer_import_complete_subtitle">Your documents have been processed</string>
     <string name="transfer_import_status_success">Successfully imported</string>
     <string name="transfer_import_done_button" tools:ignore="ButtonCase">DONE</string>
+    <string name="transfer_receive_qr_permission_denied_message">Location permission is required for nearby device transfer. Please grant it in Settings.</string>
+    <string name="transfer_receive_qr_open_settings">Open Settings</string>
+    <string name="transfer_error_invalid_qr">Invalid QR code. Please try again.</string>
+    <string name="transfer_error_connection_lost">Connection lost. Please try again.</string>
+    <string name="transfer_error_import_failed">Import failed. Please try again.</string>
+    <string name="transfer_error_no_connection">No active connection. Please try again.</string>
+    <string name="transfer_error_transfer_failed">Transfer failed. Please try again.</string>
     <!--endregion-->
+
+    <string name="engagement_aid_group_desc">EUDI Wallet NFC Engagement</string>
 
 </resources>

@@ -29,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,11 +52,12 @@ fun ReceiveWalletScreen(
     viewModel: ReceiveWalletViewModel,
 ) {
     val state: ReceiveWalletState by viewModel.viewState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     ContentScreen(
         isLoading = state.isLoading,
         navigatableAction = ScreenNavigateAction.BACKABLE,
-        onBack = { viewModel.setEvent(ReceiveWalletEvent.GoBack) },
+        onBack = { viewModel.setEvent(ReceiveWalletEvent.GoBack(context)) },
         contentErrorConfig = state.error,
     ) { paddingValues ->
         Content(

@@ -18,11 +18,13 @@ package com.k689.identid.ui.transfer.send
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.k689.identid.R
 import com.k689.identid.controller.core.WalletCoreDocumentsController
 import com.k689.identid.controller.storage.PinStorageController
 import com.k689.identid.interactor.transfer.MoveWalletInteractor
 import com.k689.identid.model.transfer.TransferableDocument
 import com.k689.identid.navigation.DashboardScreens
+import com.k689.identid.provider.resources.ResourceProvider
 import com.k689.identid.ui.component.content.ContentErrorConfig
 import com.k689.identid.ui.mvi.MviViewModel
 import com.k689.identid.ui.mvi.ViewEvent
@@ -74,6 +76,7 @@ class MoveWalletApprovalViewModel(
     private val interactor: MoveWalletInteractor,
     private val walletCoreDocumentsController: WalletCoreDocumentsController,
     private val pinStorageController: PinStorageController,
+    private val resourceProvider: ResourceProvider,
 ) : MviViewModel<MoveWalletApprovalEvent, MoveWalletApprovalState, MoveWalletApprovalEffect>() {
     override fun setInitialState(): MoveWalletApprovalState = MoveWalletApprovalState()
 
@@ -165,6 +168,7 @@ class MoveWalletApprovalViewModel(
                 val endpointId = interactor.getConnectedEndpointId()
                 if (endpointId != null) {
                     interactor.encryptAndSendData(context, endpointId)
+                    interactor.stopTransfer(context)
                     setState { copy(isSending = false, isSent = true) }
                     setEffect {
                         MoveWalletApprovalEffect.Navigation.NavigateToDashboard(
@@ -177,7 +181,7 @@ class MoveWalletApprovalViewModel(
                             isSending = false,
                             error =
                                 ContentErrorConfig(
-                                    errorSubTitle = "No active connection. Please try again.",
+                                    errorSubTitle = resourceProvider.getString(R.string.transfer_error_no_connection),
                                     onRetry = { setEvent(MoveWalletApprovalEvent.Init(context)) },
                                     onCancel = { setEffect { MoveWalletApprovalEffect.Navigation.Pop } },
                                 ),
@@ -190,7 +194,7 @@ class MoveWalletApprovalViewModel(
                         isSending = false,
                         error =
                             ContentErrorConfig(
-                                errorSubTitle = e.localizedMessage ?: "Transfer failed",
+                                errorSubTitle = e.localizedMessage ?: resourceProvider.getString(R.string.transfer_error_transfer_failed),
                                 onRetry = { setEvent(MoveWalletApprovalEvent.ConfirmTransfer(context)) },
                                 onCancel = { setEffect { MoveWalletApprovalEffect.Navigation.Pop } },
                             ),

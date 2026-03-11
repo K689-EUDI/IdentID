@@ -18,6 +18,7 @@ package com.k689.identid.ui.transfer.receive
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.k689.identid.R
 import com.k689.identid.interactor.transfer.DocumentImportResult
 import com.k689.identid.interactor.transfer.ReceiveWalletInteractor
 import com.k689.identid.interactor.transfer.ReceiveWalletPartialState
@@ -26,6 +27,7 @@ import com.k689.identid.model.transfer.TransferableDocument
 import com.k689.identid.model.transfer.WalletTransferData
 import com.k689.identid.navigation.DashboardScreens
 import com.k689.identid.navigation.TransferScreens
+import com.k689.identid.provider.resources.ResourceProvider
 import com.k689.identid.ui.component.content.ContentErrorConfig
 import com.k689.identid.ui.mvi.MviViewModel
 import com.k689.identid.ui.mvi.ViewEvent
@@ -47,7 +49,9 @@ data class ReceiveWalletState(
 ) : ViewState
 
 sealed class ReceiveWalletEvent : ViewEvent {
-    data object GoBack : ReceiveWalletEvent()
+    data class GoBack(
+        val context: Context,
+    ) : ReceiveWalletEvent()
 
     data object ChooseQr : ReceiveWalletEvent()
 
@@ -86,6 +90,7 @@ sealed class ReceiveWalletEffect : ViewSideEffect {
 @KoinViewModel
 class ReceiveWalletViewModel(
     private val interactor: ReceiveWalletInteractor,
+    private val resourceProvider: ResourceProvider,
 ) : MviViewModel<ReceiveWalletEvent, ReceiveWalletState, ReceiveWalletEffect>() {
     private var connectionJob: Job? = null
 
@@ -95,6 +100,7 @@ class ReceiveWalletViewModel(
         when (event) {
             is ReceiveWalletEvent.GoBack -> {
                 connectionJob?.cancel()
+                interactor.stopTransfer(event.context)
                 setEffect { ReceiveWalletEffect.Navigation.Pop }
             }
 
@@ -147,7 +153,7 @@ class ReceiveWalletViewModel(
                 copy(
                     error =
                         ContentErrorConfig(
-                            errorSubTitle = "Invalid QR code. Please try again.",
+                            errorSubTitle = resourceProvider.getString(R.string.transfer_error_invalid_qr),
                             onRetry = {
                                 setState { copy(error = null) }
                                 setEffect {
@@ -156,7 +162,7 @@ class ReceiveWalletViewModel(
                                     )
                                 }
                             },
-                            onCancel = { setEvent(ReceiveWalletEvent.GoBack) },
+                            onCancel = { setEvent(ReceiveWalletEvent.GoBack(context)) },
                         ),
                 )
             }
@@ -201,8 +207,8 @@ class ReceiveWalletViewModel(
                                     error =
                                         ContentErrorConfig(
                                             errorSubTitle = state.message,
-                                            onRetry = { setEvent(ReceiveWalletEvent.GoBack) },
-                                            onCancel = { setEvent(ReceiveWalletEvent.GoBack) },
+                                            onRetry = { setEvent(ReceiveWalletEvent.GoBack(context)) },
+                                            onCancel = { setEvent(ReceiveWalletEvent.GoBack(context)) },
                                         ),
                                 )
                             }
@@ -216,9 +222,9 @@ class ReceiveWalletViewModel(
                                         isLoading = false,
                                         error =
                                             ContentErrorConfig(
-                                                errorSubTitle = "Connection lost. Please try again.",
-                                                onRetry = { setEvent(ReceiveWalletEvent.GoBack) },
-                                                onCancel = { setEvent(ReceiveWalletEvent.GoBack) },
+                                                errorSubTitle = resourceProvider.getString(R.string.transfer_error_connection_lost),
+                                                onRetry = { setEvent(ReceiveWalletEvent.GoBack(context)) },
+                                                onCancel = { setEvent(ReceiveWalletEvent.GoBack(context)) },
                                             ),
                                     )
                                 }
@@ -259,9 +265,9 @@ class ReceiveWalletViewModel(
                         isImporting = false,
                         error =
                             ContentErrorConfig(
-                                errorSubTitle = e.localizedMessage ?: "Import failed",
+                                errorSubTitle = e.localizedMessage ?: resourceProvider.getString(R.string.transfer_error_import_failed),
                                 onRetry = { setEvent(ReceiveWalletEvent.ImportDocuments(context)) },
-                                onCancel = { setEvent(ReceiveWalletEvent.GoBack) },
+                                onCancel = { setEvent(ReceiveWalletEvent.GoBack(context)) },
                             ),
                     )
                 }
