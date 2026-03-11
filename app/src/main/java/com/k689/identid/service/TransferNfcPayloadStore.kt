@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 European Commission
+ * Copyright (c) 2026 European Commission
  *
  * Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European
  * Commission - subsequent versions of the EUPL (the "Licence"); You may not use this work
@@ -14,20 +14,19 @@
  * governing permissions and limitations under the Licence.
  */
 
-package com.k689.identid.config
+package com.k689.identid.service
 
-import android.content.Context
-import eu.europa.ec.eudi.rqesui.infrastructure.config.EudiRQESUiConfig
+object TransferNfcPayloadStore {
+    @Volatile
+    private var payload: String = ""
 
-class ConfigLogicImpl(
-    val context: Context,
-) : ConfigLogic {
-    override val appFlavor: AppFlavor
-        get() = AppFlavor.DEMO
+    fun setPayload(value: String) {
+        payload = value
+    }
 
-    override val rqesConfig: EudiRQESUiConfig
-        get() = RQESConfigImpl(context)
+    fun getPayload(): String = payload
 
-    override val changelogUrl: String
-        get() = "https://github.com/Skaitmenines-tapatybes-dekle/IdentID"
+    fun clear() {
+        payload = ""
+    }
 }
