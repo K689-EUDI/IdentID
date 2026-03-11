@@ -17,6 +17,7 @@
 package com.k689.identid.model.common
 
 enum class PinFlow {
-    CREATE,
+    CREATE_WITHOUT_ACTIVATION,
+    CREATE_WITH_ACTIVATION,
     UPDATE,
 }

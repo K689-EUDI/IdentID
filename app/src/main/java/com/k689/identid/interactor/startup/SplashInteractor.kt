@@ -19,6 +19,7 @@ package com.k689.identid.interactor.startup
 import com.k689.identid.R
 import com.k689.identid.config.BiometricMode
 import com.k689.identid.config.BiometricUiConfig
+import com.k689.identid.config.ConfigLogic
 import com.k689.identid.config.ConfigNavigation
 import com.k689.identid.config.IssuanceFlowType
 import com.k689.identid.config.IssuanceUiConfig
@@ -44,9 +45,13 @@ class SplashInteractorImpl(
     private val uiSerializer: UiSerializer,
     private val resourceProvider: ResourceProvider,
     private val walletCoreDocumentsController: WalletCoreDocumentsController,
+    private val configLogic: ConfigLogic,
 ) : SplashInteractor {
     private val hasDocuments: Boolean
         get() = walletCoreDocumentsController.getAllDocuments().isNotEmpty()
+
+    private val shouldActivateWithPid: Boolean
+        get() = configLogic.forcePidActivation && !hasDocuments
 
     override fun getAfterSplashRoute(): String =
         when (quickPinInteractor.hasPin()) {
@@ -62,11 +67,23 @@ class SplashInteractorImpl(
     private fun getQuickPinConfig(): String =
         generateComposableNavigationLink(
             screen = CommonScreens.QuickPin,
-            arguments = generateComposableArguments(mapOf("pinFlow" to PinFlow.CREATE)),
+            arguments =
+                generateComposableArguments(
+                    mapOf(
+                        "pinFlow" to
+                            if (shouldActivateWithPid) {
+                                PinFlow.CREATE_WITH_ACTIVATION
+                            } else {
+                                PinFlow.CREATE_WITHOUT_ACTIVATION
+                            },
+                    ),
+                ),
         )
 
-    private fun getBiometricsConfig(): String =
-        generateComposableNavigationLink(
+    private fun getBiometricsConfig(): String {
+        val shouldActivateWithPid = configLogic.forcePidActivation && !hasDocuments
+
+        return generateComposableNavigationLink(
             screen = CommonScreens.Biometric,
             arguments =
                 generateComposableArguments(
@@ -88,13 +105,13 @@ class SplashInteractorImpl(
                                                 navigationType =
                                                     NavigationType.PushScreen(
                                                         screen =
-                                                            if (hasDocuments) {
+                                                            if (!shouldActivateWithPid) {
                                                                 DashboardScreens.Dashboard
                                                             } else {
                                                                 IssuanceScreens.AddDocument
                                                             },
                                                         arguments =
-                                                            if (!hasDocuments) {
+                                                            if (shouldActivateWithPid) {
                                                                 mapOf(
                                                                     IssuanceUiConfig.serializedKeyName to
                                                                         uiSerializer.toBase64(
@@ -124,4 +141,5 @@ class SplashInteractorImpl(
                     ),
                 ),
         )
+    }
 }

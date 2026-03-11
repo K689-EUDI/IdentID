@@ -16,8 +16,8 @@
 
 package com.k689.identid.controller.storage
 
+import com.k689.identid.config.BiometricUiConfig.Parser.MAX_INCORRECT_ATTEMPTS
 import com.k689.identid.config.StorageConfig
-import com.k689.identid.storage.prefs.PrefsPinStorageProvider.Companion.MAX_INCORRECT_ATTEMPTS
 
 interface PinStorageController {
     fun retrievePin(): String
@@ -45,7 +45,6 @@ class PinStorageControllerImpl(
     override fun canValidatePin(): Boolean = storageConfig.pinStorageProvider.incorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS
 
     override fun validatePin(pin: String): Boolean {
-        // this code should already not be reached if the user is locked out, but we place a guard inside just in case
         if (!canValidatePin()) {
             return false
         }

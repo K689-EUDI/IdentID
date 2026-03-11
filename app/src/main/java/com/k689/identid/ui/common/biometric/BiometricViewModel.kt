@@ -21,6 +21,8 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.k689.identid.R
 import com.k689.identid.config.BiometricUiConfig
+import com.k689.identid.config.BiometricUiConfig.Parser.LOCKOUT_DURATION_MS
+import com.k689.identid.config.BiometricUiConfig.Parser.MAX_INCORRECT_ATTEMPTS
 import com.k689.identid.config.ConfigNavigation
 import com.k689.identid.config.FlowCompletion
 import com.k689.identid.config.NavigationType
@@ -34,8 +36,6 @@ import com.k689.identid.navigation.helper.generateComposableArguments
 import com.k689.identid.navigation.helper.generateComposableNavigationLink
 import com.k689.identid.provider.authentication.PinStorageProvider
 import com.k689.identid.provider.resources.ResourceProvider
-import com.k689.identid.storage.prefs.PrefsPinStorageProvider
-import com.k689.identid.storage.prefs.PrefsPinStorageProvider.Companion.MAX_INCORRECT_ATTEMPTS
 import com.k689.identid.ui.component.content.ContentErrorConfig
 import com.k689.identid.ui.mvi.MviViewModel
 import com.k689.identid.ui.mvi.ViewEvent
@@ -125,9 +125,9 @@ class BiometricViewModel(
 
     private fun getDisabledError(): String? {
         if (!isPinInputEnabled()) {
-            val timeLeft = (prefsPinStorageProvider.lastIncorrectPinEntryTime() + PrefsPinStorageProvider.LOCKOUT_DURATION_MS - System.currentTimeMillis()) / 1000
+            val timeLeft = (prefsPinStorageProvider.lastIncorrectPinEntryTime() + LOCKOUT_DURATION_MS - System.currentTimeMillis()) / 1000
             if (timeLeft > 0) {
-                return resourceProvider.getString(R.string.login_max_attempts_exceeded_error_message, timeLeft)
+                return resourceProvider.getQuantityString(R.plurals.login_max_attempts_exceeded_error_message, timeLeft.toInt(), timeLeft)
             }
         }
         return null
@@ -245,7 +245,7 @@ class BiometricViewModel(
                 setState {
                     copy(
                         quickPin = event.quickPin,
-                        error = error,
+                        error = null,
                     )
                 }
                 authorizeWithPin(event.quickPin)
@@ -283,13 +283,15 @@ class BiometricViewModel(
                             if (authAttempts >= MAX_INCORRECT_ATTEMPTS) {
                                 setEvent(Event.OnMaxAttemptsReached)
                             } else {
+                                val attemptsRemain = MAX_INCORRECT_ATTEMPTS - authAttempts
                                 setState {
                                     copy(
                                         quickPinError =
                                             resourceProvider.getString(R.string.quick_pin_invalid_error) + ' ' +
-                                                resourceProvider.getString(
-                                                    R.string.login_attempts_remaining_message,
-                                                    MAX_INCORRECT_ATTEMPTS - authAttempts,
+                                                resourceProvider.getQuantityString(
+                                                    R.plurals.login_attempts_remaining_message,
+                                                    attemptsRemain,
+                                                    attemptsRemain,
                                                 ),
                                     )
                                 }

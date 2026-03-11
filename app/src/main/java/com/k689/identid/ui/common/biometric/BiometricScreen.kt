@@ -370,6 +370,7 @@ private fun PinFieldLayout(
     onPinInput: (String) -> Unit,
 ) {
     WrapPinTextField(
+        clearCode = !state.isPinInputEnabled,
         modifier = modifier,
         onPinUpdate = onPinInput,
         length = state.quickPinSize,

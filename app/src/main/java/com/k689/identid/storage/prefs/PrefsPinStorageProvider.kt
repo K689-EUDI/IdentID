@@ -16,6 +16,7 @@
 
 package com.k689.identid.storage.prefs
 
+import com.k689.identid.config.BiometricUiConfig.Parser.LOCKOUT_DURATION_MS
 import com.k689.identid.controller.crypto.CryptoController
 import com.k689.identid.controller.storage.PrefsController
 import com.k689.identid.extension.business.decodeFromBase64
@@ -26,11 +27,6 @@ class PrefsPinStorageProvider(
     private val prefsController: PrefsController,
     private val cryptoController: CryptoController,
 ) : PinStorageProvider {
-    companion object {
-        const val MAX_INCORRECT_ATTEMPTS = 5
-        const val LOCKOUT_DURATION_MS = 60 * 1000L // 60 seconds lockout duration
-    }
-
     /**
      * Retrieves the stored PIN after decrypting it.
      *
@@ -76,7 +72,6 @@ class PrefsPinStorageProvider(
         }
         setIncorrectPinAttempts(attempts)
         prefsController.setLong("LastPinAttemptTime", attemptTime)
-        prefsController.setInt("PinAttempts", attempts)
         return attempts
     }
 

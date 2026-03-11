@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -110,12 +111,21 @@ fun WrapPinTextField(
                 mutableStateOf("")
             }
         }
-
     // Init focus requesters.
     val focusRequesters: List<FocusRequester> =
         remember {
             fieldsRange.map { FocusRequester() }
         }
+
+    LaunchedEffect(clearCode) {
+        if (clearCode) {
+            textFieldStateList.forEach {
+                it.value = ""
+            }
+            onPinUpdate.invoke("")
+            focusRequesters.requestFocus(0)
+        }
+    }
 
     displayCode?.let { otpCode ->
         // Assign each charter from otpCode to the corresponding TextField
@@ -123,14 +133,6 @@ fun WrapPinTextField(
             mutableState.value = otpCode[index].toString()
         }
         onPinUpdate.invoke(otpCode)
-    }
-
-    if (clearCode) {
-        textFieldStateList.forEach {
-            it.value = ""
-            onPinUpdate.invoke("")
-        }
-        focusRequesters.requestFocus(0)
     }
 
     CompositionLocalProvider(

@@ -134,8 +134,18 @@
     <!--endregion-->
 
     <!-- region Login Authentication -->
-    <string name="login_max_attempts_exceeded_error_message">Maximum number of attempts exceeded. Please try again in %1$d seconds.</string>
-    <string name="login_attempts_remaining_message">You have %1$d attempts left.</string>
+    <plurals name="login_max_attempts_exceeded_error_message">
+        <item quantity="one">
+        Maximum number of attempts exceeded. Please try again in %1$d second.
+        </item>
+        <item quantity="other">
+            Maximum number of attempts exceeded. Please try again in %1$d seconds.
+        </item>
+    </plurals>
+    <plurals name="login_attempts_remaining_message">
+        <item quantity="one">You have %1$d attempt left.</item>
+        <item quantity="other">You have %1$d attempts left.</item>
+    </plurals>
     <!--endregion-->
 
     <!-- region Biometrics -->
@@ -168,7 +178,9 @@
 
     <string name="quick_pin_create_success_text">Your wallet is secured!</string>
     <string name="quick_pin_create_success_description">To activate your wallet, connect to your National System to add your Digital ID.</string>
+    <string name="quick_pin_create_success_no_activation_description">Your wallet is ready for use.</string>
     <string name="quick_pin_create_success_btn">Add my Digital ID</string>
+    <string name="quick_pin_create_success_no_activation_btn">GO TO HOME</string>
     <string name="quick_pin_change_success_text">@string/generic_success</string>
     <string name="quick_pin_change_success_description">You successfully changed the pin</string>
     <string name="quick_pin_change_success_btn">BACK TO HOME</string>

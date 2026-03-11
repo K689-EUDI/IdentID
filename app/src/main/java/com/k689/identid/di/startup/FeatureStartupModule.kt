@@ -16,6 +16,7 @@
 
 package com.k689.identid.di.startup
 
+import com.k689.identid.config.ConfigLogic
 import com.k689.identid.controller.core.WalletCoreDocumentsController
 import com.k689.identid.interactor.common.QuickPinInteractor
 import com.k689.identid.interactor.startup.SplashInteractor
@@ -36,10 +37,12 @@ fun provideSplashInteractor(
     uiSerializer: UiSerializer,
     resourceProvider: ResourceProvider,
     walletCoreDocumentsController: WalletCoreDocumentsController,
+    configLogic: ConfigLogic,
 ): SplashInteractor =
     SplashInteractorImpl(
         quickPinInteractor,
         uiSerializer,
         resourceProvider,
         walletCoreDocumentsController,
+        configLogic,
     )
