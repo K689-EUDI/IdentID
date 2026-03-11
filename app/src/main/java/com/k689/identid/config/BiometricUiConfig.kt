@@ -18,8 +18,6 @@ package com.k689.identid.config
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.k689.identid.config.ConfigNavigation
-import com.k689.identid.config.NavigationType
 import com.k689.identid.ui.serializer.UiSerializable
 import com.k689.identid.ui.serializer.UiSerializableParser
 import com.k689.identid.ui.serializer.adapter.SerializableTypeAdapter
@@ -57,6 +55,9 @@ data class BiometricUiConfig(
                     BiometricMode::class.java,
                     SerializableTypeAdapter<BiometricMode>(),
                 ).create()
+
+        const val MAX_INCORRECT_ATTEMPTS = 5
+        const val LOCKOUT_DURATION_MS = 60 * 1000L
     }
 }
 

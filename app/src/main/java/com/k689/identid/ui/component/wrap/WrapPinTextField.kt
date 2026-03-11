@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -88,6 +89,7 @@ fun WrapPinTextField(
             focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
         ),
+    enabled: Boolean = true,
 ) {
     fun List<FocusRequester>.requestFocus(index: Int) {
         this.elementAtOrNull(index)?.requestFocus()
@@ -109,12 +111,21 @@ fun WrapPinTextField(
                 mutableStateOf("")
             }
         }
-
     // Init focus requesters.
     val focusRequesters: List<FocusRequester> =
         remember {
             fieldsRange.map { FocusRequester() }
         }
+
+    LaunchedEffect(clearCode) {
+        if (clearCode) {
+            textFieldStateList.forEach {
+                it.value = ""
+            }
+            onPinUpdate.invoke("")
+            focusRequesters.requestFocus(0)
+        }
+    }
 
     displayCode?.let { otpCode ->
         // Assign each charter from otpCode to the corresponding TextField
@@ -122,14 +133,6 @@ fun WrapPinTextField(
             mutableState.value = otpCode[index].toString()
         }
         onPinUpdate.invoke(otpCode)
-    }
-
-    if (clearCode) {
-        textFieldStateList.forEach {
-            it.value = ""
-            onPinUpdate.invoke("")
-        }
-        focusRequesters.requestFocus(0)
     }
 
     CompositionLocalProvider(
@@ -148,6 +151,7 @@ fun WrapPinTextField(
                 for (currentTextField in fieldsRange) {
                     DisableSelection {
                         OutlinedTextField(
+                            enabled = enabled,
                             modifier =
                                 Modifier
                                     .testTag(TestTag.pinTextField(currentTextField))
@@ -162,6 +166,7 @@ fun WrapPinTextField(
                                             .wrapContentSize(),
                                     ).then(
                                         Modifier.onKeyEvent { keyEvent ->
+                                            if (!enabled) return@onKeyEvent true
                                             if (keyEvent.key == Key.Backspace) {
                                                 if (textFieldStateList[currentTextField].value.isNotEmpty()) {
                                                     textFieldStateList[currentTextField].value = ""
@@ -198,6 +203,7 @@ fun WrapPinTextField(
                             isError = hasError,
                             singleLine = true,
                             onValueChange = { newText: String ->
+                                if (!enabled) return@OutlinedTextField
 
                                 if (
                                     !newText.isDigitsOnly() ||

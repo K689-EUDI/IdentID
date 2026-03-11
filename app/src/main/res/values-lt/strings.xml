@@ -120,6 +120,24 @@
     <string name="content_description_date_range_icon">Pasirinkti datų intervalą filtrui</string>
     <string name="content_description_settings_icon">Nustatymai</string>
     <!--endregion-->
+
+    <!-- region Login Authentication -->
+    <plurals name="login_max_attempts_exceeded_error_message" tools:ignore="MissingQuantity">
+        <item quantity="one">
+            Per daug kartų suvedėte neteisingą PIN kodą. Bandykite vėl už %1$d sekundės.
+        </item>
+        <item quantity="other">
+            Per daug kartų suvedėte neteisingą PIN kodą. Bandykite vėl už %1$d sekundžių.
+        </item>
+    </plurals>
+    <plurals name="login_attempts_remaining_message" tools:ignore="MissingQuantity">
+        <item quantity="one">
+            Liko %1$d bandymas.
+        </item>
+        <item quantity="other">Liko %1$d bandymai.</item>
+    </plurals>
+    <!--endregion-->
+
     <!-- region Biometric prompt -->
     <string name="biometric_prompt_title">Biometrinis autentifikavimas</string>
     <string name="biometric_prompt_subtitle">Autentifikuokitės naudodami biometrinius duomenis</string>
@@ -140,7 +158,7 @@
     <string name="document_success_sticky_button_text">@string/generic_close</string>
     <!--endregion-->
     <!-- region Pin -->
-    <string name="quick_pin_invalid_error">Neteisingas PIN kodas</string>
+    <string name="quick_pin_invalid_error">Netinkamas PIN kodas.</string>
     <string name="quick_pin_numerical_rule_invalid_error_message">Leidžiamos tik skaitinės reikšmės</string>
     <string name="quick_pin_non_match">PIN kodai nesutampa</string>
     <string name="quick_pin_create_title">Sveiki atvykę į savo piniginę</string>

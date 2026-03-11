@@ -19,7 +19,10 @@ package com.k689.identid.ui.common.biometric
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
+import com.k689.identid.R
 import com.k689.identid.config.BiometricUiConfig
+import com.k689.identid.config.BiometricUiConfig.Parser.LOCKOUT_DURATION_MS
+import com.k689.identid.config.BiometricUiConfig.Parser.MAX_INCORRECT_ATTEMPTS
 import com.k689.identid.config.ConfigNavigation
 import com.k689.identid.config.FlowCompletion
 import com.k689.identid.config.NavigationType
@@ -31,6 +34,8 @@ import com.k689.identid.interactor.common.QuickPinInteractorPinValidPartialState
 import com.k689.identid.navigation.CommonScreens
 import com.k689.identid.navigation.helper.generateComposableArguments
 import com.k689.identid.navigation.helper.generateComposableNavigationLink
+import com.k689.identid.provider.authentication.PinStorageProvider
+import com.k689.identid.provider.resources.ResourceProvider
 import com.k689.identid.ui.component.content.ContentErrorConfig
 import com.k689.identid.ui.mvi.MviViewModel
 import com.k689.identid.ui.mvi.ViewEvent
@@ -54,9 +59,13 @@ sealed class Event : ViewEvent {
 
     data object Init : Event()
 
+    data object OnTimerTick : Event()
+
     data class OnQuickPinEntered(
         val quickPin: String,
     ) : Event()
+
+    data object OnMaxAttemptsReached : Event()
 }
 
 data class State(
@@ -69,6 +78,7 @@ data class State(
     val isBackable: Boolean = false,
     val notifyOnAuthenticationFailure: Boolean = true,
     val quickPinSize: Int = 6,
+    val isPinInputEnabled: Boolean = true,
 ) : ViewState
 
 sealed class Effect : ViewSideEffect {
@@ -105,9 +115,23 @@ class BiometricViewModel(
     private val biometricInteractor: BiometricInteractor,
     private val uiSerializer: UiSerializer,
     private val biometricConfig: String,
+    private val resourceProvider: ResourceProvider,
+    private val prefsPinStorageProvider: PinStorageProvider,
 ) : MviViewModel<Event, State, Effect>() {
     private val biometricUiConfig
         get() = viewState.value.config
+
+    private fun isPinInputEnabled(): Boolean = prefsPinStorageProvider.getIncorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS
+
+    private fun getDisabledError(): String? {
+        if (!isPinInputEnabled()) {
+            val timeLeft = (prefsPinStorageProvider.lastIncorrectPinEntryTime() + LOCKOUT_DURATION_MS - System.currentTimeMillis()) / 1000
+            if (timeLeft > 0) {
+                return resourceProvider.getQuantityString(R.plurals.login_max_attempts_exceeded_error_message, timeLeft.toInt(), timeLeft)
+            }
+        }
+        return null
+    }
 
     override fun setInitialState(): State {
         val config =
@@ -116,10 +140,13 @@ class BiometricViewModel(
                 BiometricUiConfig::class.java,
                 BiometricUiConfig.Parser,
             ) ?: throw RuntimeException("BiometricUiConfig:: is Missing or invalid")
+        val quickPinError = getDisabledError()
         return State(
             config = config,
             userBiometricsAreEnabled = biometricInteractor.getBiometricUserSelection(),
             isBackable = config.onBackNavigationConfig.isBackable,
+            isPinInputEnabled = quickPinError == null,
+            quickPinError = quickPinError,
         )
     }
 
@@ -143,6 +170,16 @@ class BiometricViewModel(
                             }
                         }
                     }
+                }
+            }
+
+            is Event.OnTimerTick -> {
+                val error = getDisabledError()
+                setState {
+                    copy(
+                        quickPinError = error,
+                        isPinInputEnabled = error == null,
+                    )
                 }
             }
 
@@ -206,15 +243,33 @@ class BiometricViewModel(
 
             is Event.OnQuickPinEntered -> {
                 setState {
-                    copy(quickPin = event.quickPin, quickPinError = null)
+                    copy(
+                        quickPin = event.quickPin,
+                        error = null,
+                    )
                 }
                 authorizeWithPin(event.quickPin)
+            }
+
+            is Event.OnMaxAttemptsReached -> {
+                val error = getDisabledError()
+                setState {
+                    copy(
+                        quickPin = "",
+                        quickPinError = error,
+                        isPinInputEnabled = error == null,
+                    )
+                }
             }
         }
     }
 
     private fun authorizeWithPin(pin: String) {
         if (pin.length != viewState.value.quickPinSize) {
+            return
+        }
+        if (prefsPinStorageProvider.getIncorrectPinAttempts() >= MAX_INCORRECT_ATTEMPTS) {
+            setEvent(Event.OnMaxAttemptsReached)
             return
         }
 
@@ -224,15 +279,29 @@ class BiometricViewModel(
                 .collect {
                     when (it) {
                         is QuickPinInteractorPinValidPartialState.Failed -> {
-                            setState {
-                                copy(
-                                    quickPinError = it.errorMessage,
-                                )
+                            val authAttempts = prefsPinStorageProvider.getIncorrectPinAttempts()
+                            if (authAttempts >= MAX_INCORRECT_ATTEMPTS) {
+                                setEvent(Event.OnMaxAttemptsReached)
+                            } else {
+                                val attemptsRemain = MAX_INCORRECT_ATTEMPTS - authAttempts
+                                setState {
+                                    copy(
+                                        quickPinError =
+                                            resourceProvider.getString(R.string.quick_pin_invalid_error) + ' ' +
+                                                resourceProvider.getQuantityString(
+                                                    R.plurals.login_attempts_remaining_message,
+                                                    attemptsRemain,
+                                                    attemptsRemain,
+                                                ),
+                                    )
+                                }
                             }
                         }
 
                         is QuickPinInteractorPinValidPartialState.Success -> {
-                            authenticationSuccess()
+                            if (prefsPinStorageProvider.getIncorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS) {
+                                authenticationSuccess()
+                            }
                         }
                     }
                 }
@@ -246,7 +315,17 @@ class BiometricViewModel(
         ) {
             when (it) {
                 is BiometricsAuthenticate.Success -> {
-                    authenticationSuccess()
+                    if (prefsPinStorageProvider.getIncorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS) {
+                        authenticationSuccess()
+                    }
+                }
+
+                is BiometricsAuthenticate.Failed -> {
+                    setState {
+                        copy(
+                            quickPinError = it.errorMessage,
+                        )
+                    }
                 }
 
                 else -> {}

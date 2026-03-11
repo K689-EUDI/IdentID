@@ -16,12 +16,21 @@
 
 package com.k689.identid.controller.storage
 
+import com.k689.identid.config.BiometricUiConfig.Parser.MAX_INCORRECT_ATTEMPTS
 import com.k689.identid.config.StorageConfig
 
 interface PinStorageController {
     fun retrievePin(): String
 
     fun setPin(pin: String)
+
+    fun validatePin(pin: String): Boolean
+
+    fun retrieveIncorrectPinEntryTime(): Long
+
+    fun retrieveIncorrectAttempts(): Int
+
+    fun canValidatePin(): Boolean
 
     fun isPinValid(pin: String): Boolean
 }
@@ -35,5 +44,22 @@ class PinStorageControllerImpl(
         storageConfig.pinStorageProvider.setPin(pin)
     }
 
+    override fun canValidatePin(): Boolean = storageConfig.pinStorageProvider.getIncorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS
+
+    override fun validatePin(pin: String): Boolean {
+        if (!canValidatePin()) {
+            return false
+        }
+        val isValid = storageConfig.pinStorageProvider.isPinValid(pin)
+        if (!isValid) {
+            storageConfig.pinStorageProvider.setIncorrectPinAttempts()
+        }
+        return isValid
+    }
+
     override fun isPinValid(pin: String): Boolean = storageConfig.pinStorageProvider.isPinValid(pin)
+
+    override fun retrieveIncorrectPinEntryTime(): Long = storageConfig.pinStorageProvider.lastIncorrectPinEntryTime()
+
+    override fun retrieveIncorrectAttempts(): Int = storageConfig.pinStorageProvider.getIncorrectPinAttempts()
 }
