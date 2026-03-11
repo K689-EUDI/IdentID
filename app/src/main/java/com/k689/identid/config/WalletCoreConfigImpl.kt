@@ -71,6 +71,7 @@ internal class WalletCoreConfigImpl(
                             R.raw.pidissuerca02_cz,
                             R.raw.pidissuerca02_ee,
                             R.raw.pidissuerca02_eu,
+                            R.raw.pidissuerca02_lt,
                             R.raw.pidissuerca02_lu,
                             R.raw.pidissuerca02_nl,
                             R.raw.pidissuerca02_pt,
@@ -87,26 +88,40 @@ internal class WalletCoreConfigImpl(
         get() =
             listOf(
                 VciConfig(
-                    config = OpenId4VciManager.Config
-                        .Builder()
-                        .withIssuerUrl(issuerUrl = "https://issuer.eudiw.dev")
-                        .withClientAuthenticationType(OpenId4VciManager.ClientAuthenticationType.AttestationBased)
-                        .withAuthFlowRedirectionURI(BuildConfig.ISSUE_AUTHORIZATION_DEEPLINK)
-                        .withParUsage(OpenId4VciManager.Config.ParUsage.IF_SUPPORTED)
-                        .withDPopConfig(DPopConfig.Default)
-                        .build(),
+                    config =
+                        OpenId4VciManager.Config
+                            .Builder()
+                            .withIssuerUrl(issuerUrl = "https://pid.linux123123.com/pid-issuer")
+                            .withClientAuthenticationType(OpenId4VciManager.ClientAuthenticationType.None("identid"))
+                            .withAuthFlowRedirectionURI(BuildConfig.ISSUE_AUTHORIZATION_DEEPLINK)
+                            .withParUsage(OpenId4VciManager.Config.ParUsage.IF_SUPPORTED)
+                            .withDPopConfig(DPopConfig.Default)
+                            .build(),
                     order = 0,
                 ),
                 VciConfig(
-                    config = OpenId4VciManager.Config
-                        .Builder()
-                        .withIssuerUrl(issuerUrl = "https://issuer-backend.eudiw.dev")
-                        .withClientAuthenticationType(OpenId4VciManager.ClientAuthenticationType.AttestationBased)
-                        .withAuthFlowRedirectionURI(BuildConfig.ISSUE_AUTHORIZATION_DEEPLINK)
-                        .withParUsage(OpenId4VciManager.Config.ParUsage.IF_SUPPORTED)
-                        .withDPopConfig(DPopConfig.Default)
-                        .build(),
+                    config =
+                        OpenId4VciManager.Config
+                            .Builder()
+                            .withIssuerUrl(issuerUrl = "https://issuer.eudiw.dev")
+                            .withClientAuthenticationType(OpenId4VciManager.ClientAuthenticationType.AttestationBased)
+                            .withAuthFlowRedirectionURI(BuildConfig.ISSUE_AUTHORIZATION_DEEPLINK)
+                            .withParUsage(OpenId4VciManager.Config.ParUsage.IF_SUPPORTED)
+                            .withDPopConfig(DPopConfig.Default)
+                            .build(),
                     order = 1,
+                ),
+                VciConfig(
+                    config =
+                        OpenId4VciManager.Config
+                            .Builder()
+                            .withIssuerUrl(issuerUrl = "https://issuer-backend.eudiw.dev")
+                            .withClientAuthenticationType(OpenId4VciManager.ClientAuthenticationType.AttestationBased)
+                            .withAuthFlowRedirectionURI(BuildConfig.ISSUE_AUTHORIZATION_DEEPLINK)
+                            .withParUsage(OpenId4VciManager.Config.ParUsage.IF_SUPPORTED)
+                            .withDPopConfig(DPopConfig.Default)
+                            .build(),
+                    order = 2,
                 ),
             )
 
