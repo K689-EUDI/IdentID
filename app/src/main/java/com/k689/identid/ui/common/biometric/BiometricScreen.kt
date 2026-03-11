@@ -73,6 +73,7 @@ import com.k689.identid.ui.component.wrap.WrapIconButton
 import com.k689.identid.ui.component.wrap.WrapPinTextField
 import com.k689.identid.util.common.TestTag
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -175,6 +176,15 @@ fun BiometricScreen(
 
     OneTimeLaunchedEffect {
         viewModel.setEvent(Event.Init)
+    }
+
+    LaunchedEffect(state.isPinInputEnabled) {
+        if (!state.isPinInputEnabled) {
+            while (true) {
+                delay(1000)
+                viewModel.setEvent(Event.OnTimerTick)
+            }
+        }
     }
 }
 
@@ -360,6 +370,7 @@ private fun PinFieldLayout(
     onPinInput: (String) -> Unit,
 ) {
     WrapPinTextField(
+        clearCode = !state.isPinInputEnabled,
         modifier = modifier,
         onPinUpdate = onPinInput,
         length = state.quickPinSize,
@@ -368,6 +379,7 @@ private fun PinFieldLayout(
         visualTransformation = PasswordVisualTransformation(),
         pinWidth = 42.dp,
         focusOnCreate = !state.userBiometricsAreEnabled,
+        enabled = state.isPinInputEnabled,
     )
 }
 

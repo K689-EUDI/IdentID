@@ -22,4 +22,10 @@ interface PinStorageProvider {
     fun setPin(pin: String)
 
     fun isPinValid(pin: String): Boolean
+
+    fun lastIncorrectPinEntryTime(): Long
+
+    fun getIncorrectPinAttempts(): Int
+
+    fun setIncorrectPinAttempts(): Int
 }

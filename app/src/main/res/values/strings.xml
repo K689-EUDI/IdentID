@@ -127,6 +127,22 @@
     <string name="biometric_login_biometrics_enabled_subtitle">Use your biometrics to access the EUDI Wallet.</string>
     <string name="biometric_login_biometrics_not_enabled_subtitle">To access the EUDI Wallet you need to provide your PIN.</string>
     <!--endregion-->
+
+    <!-- region Login Authentication -->
+    <plurals name="login_max_attempts_exceeded_error_message">
+        <item quantity="one">
+        Maximum number of attempts exceeded. Please try again in %1$d second.
+        </item>
+        <item quantity="other">
+            Maximum number of attempts exceeded. Please try again in %1$d seconds.
+        </item>
+    </plurals>
+    <plurals name="login_attempts_remaining_message">
+        <item quantity="one">You have %1$d attempt left.</item>
+        <item quantity="other">You have %1$d attempts left.</item>
+    </plurals>
+    <!--endregion-->
+
     <!-- region Biometrics -->
     <string name="biometric_no_hardware">Your device does not support biometric authentication</string>
     <string name="biometric_unknown_error">Something went wrong initializing biometric authentication. Please try again</string>
@@ -140,7 +156,7 @@
     <string name="document_success_sticky_button_text">@string/generic_close</string>
     <!--endregion-->
     <!-- region Pin -->
-    <string name="quick_pin_invalid_error">Invalid pin</string>
+    <string name="quick_pin_invalid_error">Invalid pin.</string>
     <string name="quick_pin_numerical_rule_invalid_error_message">Only numerical values are allowed</string>
     <string name="quick_pin_non_match">Pins do not match</string>
     <string name="quick_pin_create_title">Welcome to your Wallet</string>

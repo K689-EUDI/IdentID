@@ -28,6 +28,7 @@ import com.k689.identid.controller.storage.BiometryStorageControllerImpl
 import com.k689.identid.controller.storage.PinStorageController
 import com.k689.identid.controller.storage.PinStorageControllerImpl
 import com.k689.identid.controller.storage.PrefsController
+import com.k689.identid.provider.authentication.PinStorageProvider
 import com.k689.identid.provider.resources.ResourceProvider
 import com.k689.identid.storage.prefs.PrefsBiometryStorageProvider
 import com.k689.identid.storage.prefs.PrefsPinStorageProvider
@@ -49,6 +50,12 @@ fun provideStorageConfig(
         pinImpl = PrefsPinStorageProvider(prefsController, cryptoController),
         biometryImpl = PrefsBiometryStorageProvider(prefsController),
     )
+
+@Single
+fun providePinStorage(
+    prefsController: PrefsController,
+    cryptoController: CryptoController,
+): PinStorageProvider = PrefsPinStorageProvider(prefsController, cryptoController)
 
 @Factory
 fun provideBiometricAuthenticationController(
