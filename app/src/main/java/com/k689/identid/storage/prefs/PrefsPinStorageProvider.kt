@@ -21,7 +21,6 @@ import com.k689.identid.controller.storage.PrefsController
 import com.k689.identid.extension.business.decodeFromBase64
 import com.k689.identid.extension.business.encodeToBase64String
 import com.k689.identid.provider.authentication.PinStorageProvider
-import org.koin.core.annotation.Single
 
 class PrefsPinStorageProvider(
     private val prefsController: PrefsController,
@@ -69,7 +68,7 @@ class PrefsPinStorageProvider(
 
     override fun setIncorrectPinAttempts(): Int {
         val attemptTime = System.currentTimeMillis()
-        var attempts = 0
+        var attempts: Int
         if (attemptTime - LOCKOUT_DURATION_MS >= lastIncorrectPinEntryTime()) {
             attempts = 1
         } else {
@@ -77,6 +76,7 @@ class PrefsPinStorageProvider(
         }
         setIncorrectPinAttempts(attempts)
         prefsController.setLong("LastPinAttemptTime", attemptTime)
+        prefsController.setInt("PinAttempts", attempts)
         return attempts
     }
 

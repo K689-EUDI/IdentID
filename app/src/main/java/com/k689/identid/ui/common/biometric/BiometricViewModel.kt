@@ -24,10 +24,8 @@ import com.k689.identid.config.BiometricUiConfig
 import com.k689.identid.config.ConfigNavigation
 import com.k689.identid.config.FlowCompletion
 import com.k689.identid.config.NavigationType
-import com.k689.identid.config.StorageConfigImpl
 import com.k689.identid.controller.authentication.BiometricsAuthenticate
 import com.k689.identid.controller.authentication.BiometricsAvailability
-import com.k689.identid.di.business.providePrefsController
 import com.k689.identid.extension.business.toUri
 import com.k689.identid.interactor.common.BiometricInteractor
 import com.k689.identid.interactor.common.QuickPinInteractorPinValidPartialState
@@ -36,7 +34,6 @@ import com.k689.identid.navigation.helper.generateComposableArguments
 import com.k689.identid.navigation.helper.generateComposableNavigationLink
 import com.k689.identid.provider.authentication.PinStorageProvider
 import com.k689.identid.provider.resources.ResourceProvider
-import com.k689.identid.storage.prefs.PrefsPinStorageProvider
 import com.k689.identid.storage.prefs.PrefsPinStorageProvider.Companion.MAX_INCORRECT_ATTEMPTS
 import com.k689.identid.ui.component.content.ContentErrorConfig
 import com.k689.identid.ui.mvi.MviViewModel
@@ -115,7 +112,7 @@ class BiometricViewModel(
     private val uiSerializer: UiSerializer,
     private val biometricConfig: String,
     private val resourceProvider: ResourceProvider,
-    private val storageProvider: StorageConfigImpl,
+    private val prefsPinStorageProvider: PinStorageProvider,
 ) : MviViewModel<Event, State, Effect>() {
     private val biometricUiConfig
         get() = viewState.value.config
@@ -217,7 +214,10 @@ class BiometricViewModel(
 
             is Event.OnQuickPinEntered -> {
                 setState {
-                    copy(quickPin = event.quickPin, error = error)
+                    copy(
+                        quickPin = event.quickPin,
+                        error = error,
+                    )
                 }
                 authorizeWithPin(event.quickPin)
             }
@@ -237,10 +237,10 @@ class BiometricViewModel(
         if (pin.length != viewState.value.quickPinSize) {
             return
         }
-//        if (prefsPinStorageProvider.incorrectPinAttempts() >= MAX_INCORRECT_ATTEMPTS) {
-//            setEvent(Event.OnMaxAttemptsReached)
-//            return
-//        }
+        if (prefsPinStorageProvider.incorrectPinAttempts() >= MAX_INCORRECT_ATTEMPTS) {
+            setEvent(Event.OnMaxAttemptsReached)
+            return
+        }
 
         viewModelScope.launch {
             biometricInteractor
@@ -248,8 +248,7 @@ class BiometricViewModel(
                 .collect {
                     when (it) {
                         is QuickPinInteractorPinValidPartialState.Failed -> {
-//                            val authAttempts = prefsPinStorageProvider.setIncorrectPinAttempts()
-                            val authAttempts = 0
+                            val authAttempts = prefsPinStorageProvider.setIncorrectPinAttempts()
                             if (authAttempts >= MAX_INCORRECT_ATTEMPTS) {
                                 setEvent(Event.OnMaxAttemptsReached)
                             } else {
@@ -267,9 +266,9 @@ class BiometricViewModel(
                         }
 
                         is QuickPinInteractorPinValidPartialState.Success -> {
-//                            if (prefsPinStorageProvider.incorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS) {
-                            authenticationSuccess()
-//                            }
+                            if (prefsPinStorageProvider.incorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS) {
+                                authenticationSuccess()
+                            }
                         }
                     }
                 }
@@ -283,24 +282,16 @@ class BiometricViewModel(
         ) {
             when (it) {
                 is BiometricsAuthenticate.Success -> {
-//                    if (prefsPinStorageProvider.incorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS) {
-                    authenticationSuccess()
-//                    }
+                    if (prefsPinStorageProvider.incorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS) {
+                        authenticationSuccess()
+                    }
                 }
 
                 is BiometricsAuthenticate.Failed -> {
-//                    val authAttempts = prefsPinStorageProvider.setIncorrectPinAttempts()
-                    val authAttempts = 0
-                    if (authAttempts >= MAX_INCORRECT_ATTEMPTS) {
-                        setEvent(Event.OnMaxAttemptsReached)
-                    } else {
-                        setState {
-                            copy(
-                                quickPinError =
-                                    resourceProvider.getString(R.string.quick_pin_invalid_error) + ' ' +
-                                        resourceProvider.getString(R.string.login_attempts_remaining_message, MAX_INCORRECT_ATTEMPTS - authAttempts),
-                            )
-                        }
+                    setState {
+                        copy(
+                            quickPinError = it.errorMessage,
+                        )
                     }
                 }
 
