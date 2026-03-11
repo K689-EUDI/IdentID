@@ -56,7 +56,7 @@ class PrefsPinStorageProvider(
 
     override fun lastIncorrectPinEntryTime(): Long = prefsController.getLong("LastPinAttemptTime", 0L)
 
-    override fun incorrectPinAttempts(): Int = if (System.currentTimeMillis() - LOCKOUT_DURATION_MS <= lastIncorrectPinEntryTime()) prefsController.getInt("PinAttempts", 0) else 0
+    override fun getIncorrectPinAttempts(): Int = if (System.currentTimeMillis() - LOCKOUT_DURATION_MS <= lastIncorrectPinEntryTime()) prefsController.getInt("PinAttempts", 0) else 0
 
     private fun setIncorrectPinAttempts(count: Int) {
         prefsController.setInt("PinAttempts", count)

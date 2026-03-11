@@ -42,7 +42,7 @@ class PinStorageControllerImpl(
         storageConfig.pinStorageProvider.setPin(pin)
     }
 
-    override fun canValidatePin(): Boolean = storageConfig.pinStorageProvider.incorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS
+    override fun canValidatePin(): Boolean = storageConfig.pinStorageProvider.getIncorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS
 
     override fun validatePin(pin: String): Boolean {
         if (!canValidatePin()) {
@@ -57,5 +57,5 @@ class PinStorageControllerImpl(
 
     override fun retrieveIncorrectPinEntryTime(): Long = storageConfig.pinStorageProvider.lastIncorrectPinEntryTime()
 
-    override fun retrieveIncorrectAttempts(): Int = storageConfig.pinStorageProvider.incorrectPinAttempts()
+    override fun retrieveIncorrectAttempts(): Int = storageConfig.pinStorageProvider.getIncorrectPinAttempts()
 }

@@ -121,7 +121,7 @@ class BiometricViewModel(
     private val biometricUiConfig
         get() = viewState.value.config
 
-    private fun isPinInputEnabled(): Boolean = prefsPinStorageProvider.incorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS
+    private fun isPinInputEnabled(): Boolean = prefsPinStorageProvider.getIncorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS
 
     private fun getDisabledError(): String? {
         if (!isPinInputEnabled()) {
@@ -268,7 +268,7 @@ class BiometricViewModel(
         if (pin.length != viewState.value.quickPinSize) {
             return
         }
-        if (prefsPinStorageProvider.incorrectPinAttempts() >= MAX_INCORRECT_ATTEMPTS) {
+        if (prefsPinStorageProvider.getIncorrectPinAttempts() >= MAX_INCORRECT_ATTEMPTS) {
             setEvent(Event.OnMaxAttemptsReached)
             return
         }
@@ -279,7 +279,7 @@ class BiometricViewModel(
                 .collect {
                     when (it) {
                         is QuickPinInteractorPinValidPartialState.Failed -> {
-                            val authAttempts = prefsPinStorageProvider.incorrectPinAttempts()
+                            val authAttempts = prefsPinStorageProvider.getIncorrectPinAttempts()
                             if (authAttempts >= MAX_INCORRECT_ATTEMPTS) {
                                 setEvent(Event.OnMaxAttemptsReached)
                             } else {
@@ -299,7 +299,7 @@ class BiometricViewModel(
                         }
 
                         is QuickPinInteractorPinValidPartialState.Success -> {
-                            if (prefsPinStorageProvider.incorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS) {
+                            if (prefsPinStorageProvider.getIncorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS) {
                                 authenticationSuccess()
                             }
                         }
@@ -315,7 +315,7 @@ class BiometricViewModel(
         ) {
             when (it) {
                 is BiometricsAuthenticate.Success -> {
-                    if (prefsPinStorageProvider.incorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS) {
+                    if (prefsPinStorageProvider.getIncorrectPinAttempts() < MAX_INCORRECT_ATTEMPTS) {
                         authenticationSuccess()
                     }
                 }

@@ -25,7 +25,7 @@ interface PinStorageProvider {
 
     fun lastIncorrectPinEntryTime(): Long
 
-    fun incorrectPinAttempts(): Int
+    fun getIncorrectPinAttempts(): Int
 
     fun setIncorrectPinAttempts(): Int
 }
