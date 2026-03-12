@@ -250,6 +250,9 @@
     <string name="preferences_screen_title">Nuostatos</string>
     <string name="preferences_theme_label">Tema</string>
     <string name="preferences_language_label">Kalba</string>
+    <string name="preferences_theme_option_light">Šviesi</string>
+    <string name="preferences_theme_option_dark">Tamsi</string>
+    <string name="preferences_theme_option_system_default">Numatytoji</string>
     <!--endregion-->
     <!-- region Home Screen -->
     <string name="home_screen_title">Pradžia</string>

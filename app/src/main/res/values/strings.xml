@@ -248,6 +248,9 @@
     <string name="preferences_screen_title">Preferences</string>
     <string name="preferences_theme_label">Theme</string>
     <string name="preferences_language_label">Language</string>
+    <string name="preferences_theme_option_light">Light</string>
+    <string name="preferences_theme_option_dark">Dark</string>
+    <string name="preferences_theme_option_system_default">System Default</string>
     <!--endregion-->
     <!-- region Home Screen -->
     <string name="home_screen_title">Home</string>
