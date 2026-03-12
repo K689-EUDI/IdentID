@@ -1,9 +1,18 @@
 package com.k689.identid.theme
 
-enum class AppTheme {
-    SYSTEM,
+import androidx.annotation.StringRes
+import com.k689.identid.R
+import com.k689.identid.provider.resources.ResourceProvider
 
-    LIGHT,
+enum class AppTheme(
+    @StringRes val labelRes: Int,
+) {
+    SYSTEM(labelRes = R.string.preferences_theme_option_system_default),
+    LIGHT(labelRes = R.string.preferences_theme_option_light),
+    DARK(labelRes = R.string.preferences_theme_option_dark),
+    ;
 
-    DARK,
+    companion object {
+        fun AppTheme.toUiText(resourceProvider: ResourceProvider): String = resourceProvider.getString(labelRes)
+    }
 }

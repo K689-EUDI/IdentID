@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.k689.identid.theme.AppLanguage
-import com.k689.identid.theme.AppTheme
 import com.k689.identid.ui.component.ListItemDataUi
 import com.k689.identid.ui.component.ListItemMainContentDataUi
 import com.k689.identid.ui.component.ListItemTrailingContentDataUi
@@ -62,14 +61,14 @@ fun PreferencesScreen(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 title = state.themeLabel,
             )
-            AppTheme.entries.onEach { theme ->
+            state.themeOptions.onEach { (theme, displayName) ->
                 val isSelected = theme == state.selectedTheme
                 WrapListItem(
                     item =
                         ListItemDataUi(
                             itemId = theme.name,
                             mainContentData =
-                                ListItemMainContentDataUi.Text(theme.name),
+                                ListItemMainContentDataUi.Text(displayName),
                             trailingContentData =
                                 ListItemTrailingContentDataUi.RadioButton(
                                     RadioButtonDataUi(
