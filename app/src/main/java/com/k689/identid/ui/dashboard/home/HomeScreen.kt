@@ -62,6 +62,7 @@ import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
 import com.k689.identid.ui.component.utils.HSpacer
 import com.k689.identid.ui.component.utils.OneTimeLaunchedEffect
+import com.k689.identid.ui.component.utils.SPACING_LARGE
 import com.k689.identid.ui.component.utils.SPACING_MEDIUM
 import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.wrap.ActionCardConfig
@@ -157,7 +158,7 @@ private fun TopBar(
             Modifier
                 .fillMaxWidth()
                 .padding(
-                    horizontal = SPACING_MEDIUM.dp,
+                    horizontal = SPACING_LARGE.dp,
                     vertical = SPACING_SMALL.dp,
                 ),
     ) {
@@ -196,7 +197,7 @@ private fun Content(
                 .fillMaxSize()
                 .paddingFrom(paddingValues, bottom = false)
                 .verticalScroll(scrollState)
-                .padding(vertical = SPACING_MEDIUM.dp),
+                .padding(vertical = SPACING_SMALL.dp),
         verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM.dp),
     ) {
         Text(

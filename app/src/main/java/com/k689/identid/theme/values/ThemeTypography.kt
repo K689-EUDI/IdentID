@@ -20,8 +20,10 @@ import com.k689.identid.R
 import com.k689.identid.theme.templates.ThemeTextStyle
 import com.k689.identid.theme.templates.ThemeTypographyTemplate
 import com.k689.identid.theme.templates.structures.ThemeFont
+import com.k689.identid.theme.templates.structures.ThemeFontRoundness
 import com.k689.identid.theme.templates.structures.ThemeFontStyle
 import com.k689.identid.theme.templates.structures.ThemeFontWeight
+import com.k689.identid.theme.templates.structures.ThemeFontWidth
 import com.k689.identid.theme.templates.structures.ThemeTextAlign
 
 internal class ThemeTypography {
@@ -52,42 +54,42 @@ internal class ThemeTypography {
                         ),
                     headlineLarge =
                         ThemeTextStyle(
-                            fontFamily = listOf(GoogleSansFlexRegular),
+                            fontFamily = listOf(GoogleSansFlexHeading1),
                             fontSize = 32,
                             letterSpacing = 0f,
                             textAlign = ThemeTextAlign.Start,
                         ),
                     headlineMedium =
                         ThemeTextStyle(
-                            fontFamily = listOf(GoogleSansFlexRegular),
+                            fontFamily = listOf(GoogleSansFlexHeading1),
                             fontSize = 28,
                             letterSpacing = 0f,
                             textAlign = ThemeTextAlign.Start,
                         ),
                     headlineSmall =
                         ThemeTextStyle(
-                            fontFamily = listOf(GoogleSansFlexRegular),
+                            fontFamily = listOf(GoogleSansFlexHeading1),
                             fontSize = 24,
                             letterSpacing = 0f,
                             textAlign = ThemeTextAlign.Start,
                         ),
                     titleLarge =
                         ThemeTextStyle(
-                            fontFamily = listOf(GoogleSansFlexRegular),
+                            fontFamily = listOf(GoogleSansFlexTitle),
                             fontSize = 22,
                             letterSpacing = 0f,
                             textAlign = ThemeTextAlign.Start,
                         ),
                     titleMedium =
                         ThemeTextStyle(
-                            fontFamily = listOf(GoogleSansFlexMedium),
+                            fontFamily = listOf(GoogleSansFlexTitle),
                             fontSize = 16,
                             letterSpacing = 0.15f,
                             textAlign = ThemeTextAlign.Start,
                         ),
                     titleSmall =
                         ThemeTextStyle(
-                            fontFamily = listOf(GoogleSansFlexMedium),
+                            fontFamily = listOf(GoogleSansFlexTitle),
                             fontSize = 14,
                             letterSpacing = 0.1f,
                             textAlign = ThemeTextAlign.Start,
@@ -139,24 +141,21 @@ internal class ThemeTypography {
     }
 }
 
-internal val RobotoRegular =
-    ThemeFont(
-        res = R.font.roboto_regular,
-        weight = ThemeFontWeight.W400,
-        style = ThemeFontStyle.Normal,
-    )
-internal val RobotoMedium =
-    ThemeFont(
-        res = R.font.roboto_medium,
-        weight = ThemeFontWeight.W500,
-        style = ThemeFontStyle.Normal,
-    )
-
 internal val GoogleSansFlexTitle =
     ThemeFont(
         res = R.font.google_sans_flex,
         weight = ThemeFontWeight.W700,
-        width = ThemeFontWidth.W125,
+        width = ThemeFontWidth.W105,
+        roundness = ThemeFontRoundness.Sharp,
+        style = ThemeFontStyle.Normal,
+    )
+
+internal val GoogleSansFlexHeading1 =
+    ThemeFont(
+        res = R.font.google_sans_flex,
+        weight = ThemeFontWeight.W750,
+        width = ThemeFontWidth.W130,
+        roundness = ThemeFontRoundness.Full,
         style = ThemeFontStyle.Normal,
     )
 
@@ -164,6 +163,8 @@ internal val GoogleSansFlexRegular =
     ThemeFont(
         res = R.font.google_sans_flex,
         weight = ThemeFontWeight.W400,
+        width = ThemeFontWidth.W100, // Standard width
+        roundness = ThemeFontRoundness.Normal,
         style = ThemeFontStyle.Normal,
     )
 
@@ -171,5 +172,7 @@ internal val GoogleSansFlexMedium =
     ThemeFont(
         res = R.font.google_sans_flex,
         weight = ThemeFontWeight.W500,
+        width = ThemeFontWidth.W100,
+        roundness = ThemeFontRoundness.Normal,
         style = ThemeFontStyle.Normal,
     )
