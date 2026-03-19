@@ -26,13 +26,21 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,11 +48,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
+import androidx.constraintlayout.helper.widget.Carousel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.room.util.TableInfo
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.k689.identid.R
@@ -81,6 +94,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
 
 typealias DashboardEvent = com.k689.identid.ui.dashboard.dashboard.Event
 typealias OpenSideMenuEvent = com.k689.identid.ui.dashboard.dashboard.Event.SideMenu.Open
@@ -191,23 +205,88 @@ private fun Content(
     paddingValues: PaddingValues,
 ) {
     val scrollState = rememberScrollState()
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .paddingFrom(paddingValues, bottom = false)
-                .verticalScroll(scrollState)
-                .padding(vertical = SPACING_SMALL.dp),
-        verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM.dp),
-    ) {
-        Text(
-            text = state.welcomeUserMessage,
-            style =
-                MaterialTheme.typography.headlineMedium.copy(
-                    color = MaterialTheme.colorScheme.onSurface,
-                ),
-        )
+    val pagerState = rememberPagerState(pageCount = { 3 })
 
+    Column {
+        Column(
+            modifier =
+                Modifier
+                    .paddingFrom(paddingValues, bottom = false)
+                    .verticalScroll(scrollState)
+                    .padding(vertical = SPACING_SMALL.dp),
+            verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM.dp),
+        ) {
+            Text(
+                text = state.welcomeUserMessage,
+                style =
+                    MaterialTheme.typography.headlineMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ),
+            )
+        }
+
+        HorizontalPager(
+            state = pagerState,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+            // This allows the side cards to peek in
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            pageSpacing = 16.dp,
+            verticalAlignment = Alignment.CenterVertically,
+        ) { page ->
+            Card(
+                modifier =
+                    @Suppress("ktlint:standard:no-consecutive-comments")
+                    Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            // 3. Optional: Add a subtle scale effect like Google Wallet
+                            /*
+                                                        val pageOffset =
+                                                            (
+                                                                (pagerState.currentPage - page) +
+                                                                    pagerState
+                                                                        .currentPageOffsetFraction
+                                                            ).absoluteValue
+                             */
+
+                            // Cards get slightly smaller/more transparent as they move away
+                            alpha =
+                                lerp(
+                                    start = 0.8f,
+                                    stop = 1f,
+                                    fraction = 1f, // - pageOffset.coerceIn(0f, 1f),
+                                )
+                            scaleY =
+                                lerp(
+                                    start = 0.9f,
+                                    stop = 1f,
+                                    fraction = 1f, // - pageOffset.coerceIn(0f, 1f),
+                                )
+                        },
+                shape = RoundedCornerShape(24.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("Card $page")
+                }
+            }
+        }
+
+        Column(
+            modifier =
+                Modifier
+
+                    .paddingFrom(paddingValues, bottom = false)
+                    .verticalScroll(scrollState)
+                    .padding(vertical = SPACING_SMALL.dp),
+            verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM.dp),
+        ) {
 /*        WrapActionCard(
             config = state.authenticateCardConfig,
             onActionClick = {
@@ -235,6 +314,7 @@ private fun Content(
                 )
             },
         )*/
+        }
     }
 
     if (state.bleAvailability == BleAvailability.NO_PERMISSION) {
