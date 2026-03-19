@@ -22,6 +22,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -53,6 +55,8 @@ import com.k689.identid.model.core.RevokedDocumentDataDomain
 import com.k689.identid.navigation.helper.handleDeepLinkAction
 import com.k689.identid.ui.component.SystemBroadcastReceiver
 import com.k689.identid.ui.component.utils.LifecycleEffect
+import com.k689.identid.ui.component.utils.SPACING_EXTRA_SMALL
+import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.wrap.BottomSheetTextDataUi
 import com.k689.identid.ui.component.wrap.BottomSheetWithOptionsList
 import com.k689.identid.ui.component.wrap.WrapModalBottomSheet
@@ -90,14 +94,16 @@ internal fun DashboardScreen(
             skipPartiallyExpanded = true,
         )
 
-    Scaffold(
-        bottomBar = { BottomNavigationBar(bottomNavigationController) },
-    ) { padding ->
+    Column(
+        // bottomBar = { BottomNavigationBar(bottomNavigationController) },
+        modifier =
+            Modifier
+                .padding(top = SPACING_SMALL.dp),
+    ) {
         NavHost(
             modifier =
                 Modifier
-                    .fillMaxSize()
-                    .padding(bottom = padding.calculateBottomPadding()),
+                    .fillMaxSize(),
             navController = bottomNavigationController,
             startDestination = BottomNavigationItem.Home.route,
         ) {

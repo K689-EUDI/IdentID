@@ -68,7 +68,7 @@ internal class ThemeTypography {
                         ),
                     headlineSmall =
                         ThemeTextStyle(
-                            fontFamily = listOf(GoogleSansFlexHeading1),
+                            fontFamily = listOf(GoogleSansFlexHeading2),
                             fontSize = 24,
                             letterSpacing = 0f,
                             textAlign = ThemeTextAlign.Start,
@@ -154,6 +154,15 @@ internal val GoogleSansFlexHeading1 =
     ThemeFont(
         res = R.font.google_sans_flex,
         weight = ThemeFontWeight.W750,
+        width = ThemeFontWidth.W130,
+        roundness = ThemeFontRoundness.Full,
+        style = ThemeFontStyle.Normal,
+    )
+
+internal val GoogleSansFlexHeading2 =
+    ThemeFont(
+        res = R.font.google_sans_flex,
+        weight = ThemeFontWeight.W600,
         width = ThemeFontWidth.W130,
         roundness = ThemeFontRoundness.Full,
         style = ThemeFontStyle.Normal,

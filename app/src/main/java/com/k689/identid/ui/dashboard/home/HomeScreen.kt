@@ -19,29 +19,32 @@ package com.k689.identid.ui.dashboard.home
 import android.Manifest
 import android.content.Context
 import android.os.Build
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,42 +52,32 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
-import androidx.constraintlayout.helper.widget.Carousel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.room.util.TableInfo
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.k689.identid.R
 import com.k689.identid.extension.ui.finish
 import com.k689.identid.extension.ui.openAppSettings
 import com.k689.identid.extension.ui.openBleSettings
-import com.k689.identid.extension.ui.paddingFrom
-import com.k689.identid.ui.component.AppIconAndText
-import com.k689.identid.ui.component.AppIconAndTextDataUi
 import com.k689.identid.ui.component.AppIcons
-import com.k689.identid.ui.component.ModalOptionUi
 import com.k689.identid.ui.component.content.ContentScreen
 import com.k689.identid.ui.component.content.ScreenNavigateAction
 import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
-import com.k689.identid.ui.component.utils.HSpacer
 import com.k689.identid.ui.component.utils.OneTimeLaunchedEffect
+import com.k689.identid.ui.component.utils.SPACING_EXTRA_LARGE
+import com.k689.identid.ui.component.utils.SPACING_EXTRA_SMALL
 import com.k689.identid.ui.component.utils.SPACING_LARGE
 import com.k689.identid.ui.component.utils.SPACING_MEDIUM
 import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.wrap.ActionCardConfig
 import com.k689.identid.ui.component.wrap.BottomSheetTextDataUi
-import com.k689.identid.ui.component.wrap.BottomSheetWithTwoBigIcons
 import com.k689.identid.ui.component.wrap.DialogBottomSheet
-import com.k689.identid.ui.component.wrap.GenericBottomSheet
-import com.k689.identid.ui.component.wrap.WrapActionCard
-import com.k689.identid.ui.component.wrap.WrapIcon
 import com.k689.identid.ui.component.wrap.WrapIconButton
 import com.k689.identid.ui.component.wrap.WrapModalBottomSheet
 import kotlinx.coroutines.CoroutineScope
@@ -94,7 +87,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlin.math.absoluteValue
 
 typealias DashboardEvent = com.k689.identid.ui.dashboard.dashboard.Event
 typealias OpenSideMenuEvent = com.k689.identid.ui.dashboard.dashboard.Event.SideMenu.Open
@@ -110,9 +102,15 @@ fun HomeScreen(
     val state: State by viewModel.viewState.collectAsStateWithLifecycle()
     val isBottomSheetOpen = state.isBottomSheetOpen
     val scope = rememberCoroutineScope()
-    val bottomSheetState =
-        rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
+
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val scaffoldState =
+        rememberBottomSheetScaffoldState(
+            bottomSheetState =
+                rememberStandardBottomSheetState(
+                    initialValue = SheetValue.PartiallyExpanded,
+                ),
         )
 
     ContentScreen(
@@ -120,24 +118,66 @@ fun HomeScreen(
         navigatableAction = ScreenNavigateAction.NONE,
         onBack = { context.finish() },
         topBar = {
-            TopBar(
-                onEventSent = onDashboardEventSent,
-            )
+            TopBar(onEventSent = onDashboardEventSent)
         },
     ) { paddingValues ->
-        Content(
-            state = state,
-            effectFlow = viewModel.effect,
-            onEventSent = { event ->
-                viewModel.setEvent(event)
+        BottomSheetScaffold(
+            // Only apply top padding so the bottom sheet sits all the way to the bottom edge of the device
+            modifier =
+                Modifier.padding(
+                    top = paddingValues.calculateTopPadding(),
+                ),
+            scaffoldState = scaffoldState,
+            sheetShadowElevation = 16.dp,
+            // Add the system bottom padding to ensure it peeks exactly 240dp visibly above the nav bar
+            sheetPeekHeight = 400.dp + paddingValues.calculateBottomPadding(),
+            sheetContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            sheetDragHandle = { BottomSheetDefaults.DragHandle() },
+            sheetContent = {
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxHeight()
+                            // Ensure the actual text/content inside the sheet clears the navigation bar
+                            .padding(bottom = paddingValues.calculateBottomPadding()),
+                ) {
+                    Text(
+                        text = stringResource(R.string.recent_transactions),
+                        style =
+                            MaterialTheme.typography.headlineSmall.copy(
+                                color = MaterialTheme.colorScheme.onSurface,
+                            ),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    horizontal = SPACING_LARGE.dp,
+                                    vertical = SPACING_EXTRA_SMALL.dp,
+                                ),
+                    )
+
+                    HomeScreenSheetContent(
+                        sheetContent = state.sheetContent,
+                        onEventSent = { event -> viewModel.setEvent(event) },
+                    )
+                }
             },
-            onNavigationRequested = {
-                handleNavigationEffect(it, navHostController, context)
-            },
-            coroutineScope = scope,
-            modalBottomSheetState = bottomSheetState,
-            paddingValues = paddingValues,
-        )
+        ) { scaffoldPadding ->
+            Content(
+                state = state,
+                effectFlow = viewModel.effect,
+                onEventSent = { viewModel.setEvent(it) },
+                onNavigationRequested = { handleNavigationEffect(it, navHostController, context) },
+                coroutineScope = scope,
+                modalBottomSheetState = scaffoldState.bottomSheetState,
+                // The Scaffold automatically calculates its bottom padding to include the sheet's peek height
+                paddingValues =
+                    PaddingValues(
+                        top = scaffoldPadding.calculateTopPadding(),
+                        bottom = scaffoldPadding.calculateBottomPadding(),
+                    ),
+            )
+        }
     }
 
     if (isBottomSheetOpen) {
@@ -171,6 +211,7 @@ private fun TopBar(
         modifier =
             Modifier
                 .fillMaxWidth()
+                .statusBarsPadding()
                 .padding(
                     horizontal = SPACING_LARGE.dp,
                     vertical = SPACING_SMALL.dp,
@@ -207,23 +248,29 @@ private fun Content(
     val scrollState = rememberScrollState()
     val pagerState = rememberPagerState(pageCount = { 3 })
 
-    Column {
-        Column(
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(
+                    top = paddingValues.calculateTopPadding(),
+                    bottom = paddingValues.calculateBottomPadding(),
+                ).verticalScroll(scrollState),
+    ) {
+        Text(
+            text = state.welcomeUserMessage,
+            style =
+                MaterialTheme.typography.headlineMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                ),
             modifier =
-                Modifier
-                    .paddingFrom(paddingValues, bottom = false)
-                    .verticalScroll(scrollState)
-                    .padding(vertical = SPACING_SMALL.dp),
-            verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM.dp),
-        ) {
-            Text(
-                text = state.welcomeUserMessage,
-                style =
-                    MaterialTheme.typography.headlineMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurface,
-                    ),
-            )
-        }
+                Modifier.padding(
+                    start = SPACING_EXTRA_LARGE.dp,
+                    end = SPACING_EXTRA_LARGE.dp,
+                    top = SPACING_SMALL.dp,
+                    bottom = SPACING_EXTRA_LARGE.dp,
+                ),
+        )
 
         HorizontalPager(
             state = pagerState,
@@ -231,43 +278,31 @@ private fun Content(
                 Modifier
                     .fillMaxWidth()
                     .height(200.dp),
-            // This allows the side cards to peek in
-            contentPadding = PaddingValues(horizontal = 20.dp),
+            contentPadding = PaddingValues(horizontal = 32.dp),
             pageSpacing = 16.dp,
             verticalAlignment = Alignment.CenterVertically,
         ) { page ->
             Card(
                 modifier =
-                    @Suppress("ktlint:standard:no-consecutive-comments")
                     Modifier
                         .fillMaxSize()
                         .graphicsLayer {
-                            // 3. Optional: Add a subtle scale effect like Google Wallet
-                            /*
-                                                        val pageOffset =
-                                                            (
-                                                                (pagerState.currentPage - page) +
-                                                                    pagerState
-                                                                        .currentPageOffsetFraction
-                                                            ).absoluteValue
-                             */
-
-                            // Cards get slightly smaller/more transparent as they move away
                             alpha =
                                 lerp(
                                     start = 0.8f,
                                     stop = 1f,
-                                    fraction = 1f, // - pageOffset.coerceIn(0f, 1f),
+                                    fraction = 1f,
                                 )
                             scaleY =
                                 lerp(
                                     start = 0.9f,
                                     stop = 1f,
-                                    fraction = 1f, // - pageOffset.coerceIn(0f, 1f),
+                                    fraction = 1f,
                                 )
                         },
                 shape = RoundedCornerShape(24.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -276,44 +311,6 @@ private fun Content(
                     Text("Card $page")
                 }
             }
-        }
-
-        Column(
-            modifier =
-                Modifier
-
-                    .paddingFrom(paddingValues, bottom = false)
-                    .verticalScroll(scrollState)
-                    .padding(vertical = SPACING_SMALL.dp),
-            verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM.dp),
-        ) {
-/*        WrapActionCard(
-            config = state.authenticateCardConfig,
-            onActionClick = {
-                onEventSent(
-                    Event.AuthenticateCard.AuthenticatePressed,
-                )
-            },
-            onLearnMoreClick = {
-                onEventSent(
-                    Event.AuthenticateCard.LearnMorePressed,
-                )
-            },
-        )
-
-        WrapActionCard(
-            config = state.signCardConfig,
-            onActionClick = {
-                onEventSent(
-                    Event.SignDocumentCard.SignDocumentPressed,
-                )
-            },
-            onLearnMoreClick = {
-                onEventSent(
-                    Event.SignDocumentCard.LearnMorePressed,
-                )
-            },
-        )*/
         }
     }
 
@@ -386,142 +383,6 @@ private fun HomeScreenSheetContent(
     onEventSent: (event: Event) -> Unit,
 ) {
     when (sheetContent) {
-        is HomeScreenBottomSheetContent.Authenticate -> {
-            BottomSheetWithTwoBigIcons(
-                textData =
-                    BottomSheetTextDataUi(
-                        title = stringResource(R.string.home_screen_authenticate),
-                        message = stringResource(R.string.home_screen_authenticate_description),
-                    ),
-                options =
-                    listOf(
-                        ModalOptionUi(
-                            title = stringResource(R.string.home_screen_authenticate_option_in_person),
-                            leadingIcon = AppIcons.PresentDocumentInPerson,
-                            event = Event.BottomSheet.Authenticate.OpenAuthenticateInPerson,
-                        ),
-                        ModalOptionUi(
-                            title = stringResource(R.string.home_screen_add_document_option_online),
-                            leadingIcon = AppIcons.PresentDocumentOnline,
-                            event = Event.BottomSheet.Authenticate.OpenAuthenticateOnLine,
-                        ),
-                    ),
-                onEventSent = { event ->
-                    onEventSent(event)
-                },
-            )
-        }
-
-        is HomeScreenBottomSheetContent.Sign -> {
-            BottomSheetWithTwoBigIcons(
-                textData =
-                    BottomSheetTextDataUi(
-                        title = stringResource(R.string.home_screen_sign_document),
-                        message = stringResource(R.string.home_screen_sign_document_description),
-                    ),
-                options =
-                    listOf(
-                        ModalOptionUi(
-                            title = stringResource(R.string.home_screen_sign_document_option_from_device),
-                            leadingIcon = AppIcons.SignDocumentFromDevice,
-                            leadingIconTint = MaterialTheme.colorScheme.primary,
-                            event = Event.BottomSheet.SignDocument.OpenFromDevice,
-                        ),
-                        ModalOptionUi(
-                            title = stringResource(R.string.home_screen_sign_document_option_scan_qr),
-                            leadingIcon = AppIcons.SignDocumentFromQr,
-                            leadingIconTint = MaterialTheme.colorScheme.primary,
-                            event = Event.BottomSheet.SignDocument.OpenScanQR,
-                        ),
-                    ),
-                onEventSent = { event ->
-                    onEventSent(event)
-                },
-            )
-        }
-
-        is HomeScreenBottomSheetContent.LearnMoreAboutAuthenticate -> {
-            GenericBottomSheet(
-                titleContent = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        WrapIcon(
-                            iconData = AppIcons.Info,
-                            customTint = MaterialTheme.colorScheme.primary,
-                        )
-                        HSpacer.Small()
-                        Text(
-                            text = stringResource(R.string.home_screen_authenticate),
-                            style =
-                                MaterialTheme.typography.headlineSmall.copy(
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                ),
-                        )
-                    }
-                },
-                bodyContent = {
-                    Column(verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM.dp)) {
-                        Text(
-                            stringResource(R.string.home_screen_sign_learn_more_inner_title),
-                            style =
-                                MaterialTheme.typography.titleMedium.copy(
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                ),
-                        )
-                        Text(
-                            stringResource(R.string.home_screen_sign_learn_more_description),
-                            style =
-                                MaterialTheme.typography.bodyLarge.copy(
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                ),
-                        )
-                    }
-                },
-            )
-        }
-
-        is HomeScreenBottomSheetContent.LearnMoreAboutSignDocument -> {
-            GenericBottomSheet(
-                titleContent = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        WrapIcon(
-                            iconData = AppIcons.Info,
-                            customTint = MaterialTheme.colorScheme.primary,
-                        )
-                        HSpacer.Small()
-                        Text(
-                            stringResource(R.string.home_screen_sign),
-                            style =
-                                MaterialTheme.typography.headlineSmall.copy(
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                ),
-                        )
-                    }
-                },
-                bodyContent = {
-                    Column(verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM.dp)) {
-                        Text(
-                            stringResource(R.string.home_screen_authenticate_learn_more_inner_title),
-                            style =
-                                MaterialTheme.typography.titleMedium.copy(
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                ),
-                        )
-                        Text(
-                            stringResource(R.string.home_screen_authenticate_learn_more_description),
-                            style =
-                                MaterialTheme.typography.bodyLarge.copy(
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                ),
-                        )
-                    }
-                },
-            )
-        }
-
         is HomeScreenBottomSheetContent.Bluetooth -> {
             DialogBottomSheet(
                 textData =
@@ -540,6 +401,10 @@ private fun HomeScreenSheetContent(
                 },
                 onNegativeClick = { onEventSent(Event.BottomSheet.Bluetooth.SecondaryButtonPressed) },
             )
+        }
+
+        else -> {
+            // Placeholder: Authenticate and Sign Document modals, or recent transactions will be added later
         }
     }
 }
@@ -588,6 +453,14 @@ private fun RequiredPermissionsAsk(
 @Composable
 private fun HomeScreenContentPreview() {
     PreviewTheme {
+        val scaffoldState =
+            rememberBottomSheetScaffoldState(
+                bottomSheetState =
+                    rememberStandardBottomSheetState(
+                        initialValue = SheetValue.PartiallyExpanded,
+                    ),
+            )
+
         ContentScreen(
             isLoading = false,
             navigatableAction = ScreenNavigateAction.NONE,
@@ -598,33 +471,54 @@ private fun HomeScreenContentPreview() {
                 )
             },
         ) { paddingValues ->
-            Content(
-                state =
-                    State(
-                        isBottomSheetOpen = false,
-                        welcomeUserMessage = "Welcome back, Alex",
-                        authenticateCardConfig =
-                            ActionCardConfig(
-                                title = stringResource(R.string.home_screen_authentication_card_title),
-                                icon = AppIcons.WalletActivated,
-                                primaryButtonText = stringResource(R.string.home_screen_authenticate),
-                                secondaryButtonText = stringResource(R.string.home_screen_learn_more),
-                            ),
-                        signCardConfig =
-                            ActionCardConfig(
-                                title = stringResource(R.string.home_screen_sign_card_title),
-                                icon = AppIcons.Contract,
-                                primaryButtonText = stringResource(R.string.home_screen_sign),
-                                secondaryButtonText = stringResource(R.string.home_screen_learn_more),
-                            ),
+            BottomSheetScaffold(
+                modifier =
+                    Modifier.padding(
+                        top = paddingValues.calculateTopPadding(),
                     ),
-                effectFlow = Channel<Effect>().receiveAsFlow(),
-                onNavigationRequested = {},
-                coroutineScope = rememberCoroutineScope(),
-                modalBottomSheetState = rememberModalBottomSheetState(),
-                onEventSent = {},
-                paddingValues = paddingValues,
-            )
+                scaffoldState = scaffoldState,
+                sheetPeekHeight = 400.dp + paddingValues.calculateBottomPadding(),
+                sheetContent = {
+                    Column(
+                        modifier =
+                            Modifier
+                                .fillMaxHeight()
+                                .padding(bottom = paddingValues.calculateBottomPadding()),
+                    ) {}
+                },
+            ) { scaffoldPadding ->
+                Content(
+                    state =
+                        State(
+                            isBottomSheetOpen = false,
+                            welcomeUserMessage = "Welcome back, Alex",
+                            authenticateCardConfig =
+                                ActionCardConfig(
+                                    title = stringResource(R.string.home_screen_authentication_card_title),
+                                    icon = AppIcons.WalletActivated,
+                                    primaryButtonText = stringResource(R.string.home_screen_authenticate),
+                                    secondaryButtonText = stringResource(R.string.home_screen_learn_more),
+                                ),
+                            signCardConfig =
+                                ActionCardConfig(
+                                    title = stringResource(R.string.home_screen_sign_card_title),
+                                    icon = AppIcons.Contract,
+                                    primaryButtonText = stringResource(R.string.home_screen_sign),
+                                    secondaryButtonText = stringResource(R.string.home_screen_learn_more),
+                                ),
+                        ),
+                    effectFlow = Channel<Effect>().receiveAsFlow(),
+                    onNavigationRequested = {},
+                    coroutineScope = rememberCoroutineScope(),
+                    modalBottomSheetState = rememberModalBottomSheetState(),
+                    onEventSent = {},
+                    paddingValues =
+                        PaddingValues(
+                            top = scaffoldPadding.calculateTopPadding(),
+                            bottom = scaffoldPadding.calculateBottomPadding(),
+                        ),
+                )
+            }
         }
     }
 }
