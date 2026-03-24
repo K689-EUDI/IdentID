@@ -76,7 +76,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -84,6 +83,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -214,7 +214,7 @@ fun HomeScreen(
                         onEventSent = { viewModel.setEvent(it) },
                         onNavigationRequested = { handleNavigationEffect(it, navHostController, context, onDashboardEventSent) },
                         coroutineScope = scope,
-                        modalBottomSheetState = scaffoldState.bottomSheetState,
+                        bottomSheetState = scaffoldState.bottomSheetState,
                         paddingValues =
                             PaddingValues(
                                 top = scaffoldPadding.calculateTopPadding(),
@@ -351,7 +351,7 @@ private fun Content(
     onEventSent: ((event: Event) -> Unit),
     onNavigationRequested: (navigationEffect: Effect.Navigation) -> Unit,
     coroutineScope: CoroutineScope,
-    modalBottomSheetState: SheetState,
+    bottomSheetState: SheetState,
     paddingValues: PaddingValues,
     onDashboardEventSent: (DashboardEvent) -> Unit,
 ) {
@@ -478,10 +478,8 @@ private fun Content(
                     }
 
                     is Effect.CloseBottomSheet -> {
-                        if (state.isBottomSheetOpen) {
-                            coroutineScope.launch {
-                                modalBottomSheetState.hide()
-                            }
+                        coroutineScope.launch {
+                            bottomSheetState.partialExpand()
                         }
                         onEventSent(Event.BottomSheet.UpdateBottomSheetState(isOpen = false))
                     }
@@ -698,7 +696,7 @@ private fun RecentTransactionItem(
 
         Icon(
             imageVector = if (isFailed) Icons.Default.Cancel else Icons.Default.CheckCircle,
-            contentDescription = header.supportingText ?: "",
+            contentDescription = status.name,
             tint = if (isFailed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(24.dp),
         )
@@ -858,7 +856,7 @@ private fun HomeScreenContentPreview() {
                         effectFlow = Channel<Effect>().receiveAsFlow(),
                         onNavigationRequested = {},
                         coroutineScope = rememberCoroutineScope(),
-                        modalBottomSheetState = rememberModalBottomSheetState(),
+                        bottomSheetState = scaffoldState.bottomSheetState,
                         onEventSent = {},
                         paddingValues =
                             PaddingValues(
