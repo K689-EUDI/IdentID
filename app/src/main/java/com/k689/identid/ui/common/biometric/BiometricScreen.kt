@@ -24,8 +24,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -67,8 +66,10 @@ import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
 import com.k689.identid.ui.component.utils.OneTimeLaunchedEffect
 import com.k689.identid.ui.component.utils.SIZE_MEDIUM
+import com.k689.identid.ui.component.utils.SPACING_EXTRA_LARGE
 import com.k689.identid.ui.component.utils.SPACING_LARGE
 import com.k689.identid.ui.component.utils.SPACING_SMALL
+import com.k689.identid.ui.component.utils.SPACING_XX_LARGE
 import com.k689.identid.ui.component.wrap.WrapIconButton
 import com.k689.identid.ui.component.wrap.WrapPinTextField
 import com.k689.identid.util.common.TestTag
@@ -208,8 +209,7 @@ private fun Body(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState()),
+                    .weight(1f),
         ) {
             MainContent(
                 state = state,
@@ -285,6 +285,7 @@ private fun MainContent(
                     Modifier
                         .fillMaxWidth()
                         .padding(vertical = SPACING_SMALL.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     modifier =
@@ -297,6 +298,7 @@ private fun MainContent(
                         MaterialTheme.typography.titleMedium.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                         ),
+                    textAlign = TextAlign.Center,
                 )
 
                 PinFieldLayout(
@@ -322,18 +324,10 @@ private fun MainContent(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(vertical = SPACING_LARGE.dp),
-                verticalArrangement = Arrangement.spacedBy(SPACING_SMALL.dp, Alignment.Top),
+                        .padding(top = SPACING_XX_LARGE.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(
-                    text = mode.title,
-                    modifier = Modifier.testTag(TestTag.BiometricScreen.PIN_TITLE),
-                    style =
-                        MaterialTheme.typography.headlineMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurface,
-                        ),
-                )
-
                 val subtitle =
                     if (state.userBiometricsAreEnabled) {
                         mode.subTitleWhenBiometricsEnabled
@@ -346,19 +340,20 @@ private fun MainContent(
                         MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                         ),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                )
+                PinFieldLayout(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = SPACING_LARGE.dp),
+                    state = state,
+                    onPinInput = { quickPin ->
+                        onEventSent(Event.OnQuickPinEntered(quickPin))
+                    },
                 )
             }
-
-            PinFieldLayout(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = SPACING_LARGE.dp),
-                state = state,
-                onPinInput = { quickPin ->
-                    onEventSent(Event.OnQuickPinEntered(quickPin))
-                },
-            )
         }
     }
 }
