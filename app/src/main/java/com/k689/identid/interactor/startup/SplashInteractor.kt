@@ -94,7 +94,6 @@ class SplashInteractorImpl(
                                     BiometricUiConfig(
                                         mode =
                                             BiometricMode.Login(
-                                                title = resourceProvider.getString(R.string.biometric_login_title),
                                                 subTitleWhenBiometricsEnabled = resourceProvider.getString(R.string.biometric_login_biometrics_enabled_subtitle),
                                                 subTitleWhenBiometricsNotEnabled = resourceProvider.getString(R.string.biometric_login_biometrics_not_enabled_subtitle),
                                             ),

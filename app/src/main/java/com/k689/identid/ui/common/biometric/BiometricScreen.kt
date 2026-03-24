@@ -18,14 +18,14 @@ package com.k689.identid.ui.common.biometric
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -99,7 +100,7 @@ fun BiometricScreen(
             viewModel.setEvent(Event.OnNavigateBack)
         },
         contentErrorConfig = state.error,
-        imePaddingConfig = ImePaddingConfig.ONLY_CONTENT,
+        imePaddingConfig = ImePaddingConfig.NO_PADDING,
     ) {
         Body(
             state = state,
@@ -208,8 +209,7 @@ private fun Body(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState()),
+                    .weight(1f),
         ) {
             MainContent(
                 state = state,
@@ -263,7 +263,7 @@ private fun Body(
 }
 
 @Composable
-private fun MainContent(
+private fun ColumnScope.MainContent(
     state: State,
     onEventSent: (event: Event) -> Unit,
 ) {
@@ -284,8 +284,11 @@ private fun MainContent(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(vertical = SPACING_SMALL.dp),
+                        .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                Spacer(modifier = Modifier.weight(1f))
+
                 Text(
                     modifier =
                         Modifier
@@ -297,6 +300,8 @@ private fun MainContent(
                         MaterialTheme.typography.titleMedium.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                         ),
+                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                    textAlign = TextAlign.Center,
                 )
 
                 PinFieldLayout(
@@ -306,6 +311,8 @@ private fun MainContent(
                         onEventSent(Event.OnQuickPinEntered(quickPin))
                     },
                 )
+
+                Spacer(modifier = Modifier.weight(2.8f))
             }
         }
 
@@ -322,17 +329,10 @@ private fun MainContent(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(vertical = SPACING_LARGE.dp),
-                verticalArrangement = Arrangement.spacedBy(SPACING_SMALL.dp, Alignment.Top),
+                        .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(
-                    text = mode.title,
-                    modifier = Modifier.testTag(TestTag.BiometricScreen.PIN_TITLE),
-                    style =
-                        MaterialTheme.typography.headlineMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurface,
-                        ),
-                )
+                Spacer(modifier = Modifier.weight(1f))
 
                 val subtitle =
                     if (state.userBiometricsAreEnabled) {
@@ -346,19 +346,21 @@ private fun MainContent(
                         MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                         ),
+                    textAlign = TextAlign.Center,
                 )
-            }
+                PinFieldLayout(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = SPACING_LARGE.dp),
+                    state = state,
+                    onPinInput = { quickPin ->
+                        onEventSent(Event.OnQuickPinEntered(quickPin))
+                    },
+                )
 
-            PinFieldLayout(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = SPACING_LARGE.dp),
-                state = state,
-                onPinInput = { quickPin ->
-                    onEventSent(Event.OnQuickPinEntered(quickPin))
-                },
-            )
+                Spacer(modifier = Modifier.weight(2.8f))
+            }
         }
     }
 }

@@ -123,9 +123,8 @@
     <!-- region Biometric prompt -->
     <string name="biometric_prompt_title">Biometric authentication</string>
     <string name="biometric_prompt_subtitle">Authenticate using your biometrics</string>
-    <string name="biometric_login_title">Welcome back</string>
     <string name="biometric_login_biometrics_enabled_subtitle">Use your biometrics to access the EUDI Wallet.</string>
-    <string name="biometric_login_biometrics_not_enabled_subtitle">To access the EUDI Wallet you need to provide your PIN.</string>
+    <string name="biometric_login_biometrics_not_enabled_subtitle">Enter your PIN code to continue:</string>
     <!--endregion-->
 
     <!-- region Login Authentication -->
@@ -160,7 +159,7 @@
     <string name="quick_pin_numerical_rule_invalid_error_message">Only numerical values are allowed</string>
     <string name="quick_pin_non_match">Pins do not match</string>
     <string name="quick_pin_create_title">Welcome to your Wallet</string>
-    <string name="quick_pin_create_enter_subtitle">Secure your wallet with a PIN code and connect to your National System.</string>
+    <string name="quick_pin_create_enter_subtitle">Secure your digital wallet with a PIN code.</string>
     <string name="quick_pin_create_reenter_subtitle">Re-enter the pin</string>
     <string name="quick_pin_change_title">Change pin</string>
     <string name="quick_pin_change_validate_current_subtitle">Type your current pin</string>
