@@ -18,8 +18,10 @@ package com.k689.identid.ui.common.biometric
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -68,7 +70,6 @@ import com.k689.identid.ui.component.utils.OneTimeLaunchedEffect
 import com.k689.identid.ui.component.utils.SIZE_MEDIUM
 import com.k689.identid.ui.component.utils.SPACING_LARGE
 import com.k689.identid.ui.component.utils.SPACING_SMALL
-import com.k689.identid.ui.component.utils.SPACING_XX_LARGE
 import com.k689.identid.ui.component.wrap.WrapIconButton
 import com.k689.identid.ui.component.wrap.WrapPinTextField
 import com.k689.identid.util.common.TestTag
@@ -99,7 +100,7 @@ fun BiometricScreen(
             viewModel.setEvent(Event.OnNavigateBack)
         },
         contentErrorConfig = state.error,
-        imePaddingConfig = ImePaddingConfig.ONLY_CONTENT,
+        imePaddingConfig = ImePaddingConfig.NO_PADDING,
     ) {
         Body(
             state = state,
@@ -262,7 +263,7 @@ private fun Body(
 }
 
 @Composable
-private fun MainContent(
+private fun ColumnScope.MainContent(
     state: State,
     onEventSent: (event: Event) -> Unit,
 ) {
@@ -283,8 +284,11 @@ private fun MainContent(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(vertical = SPACING_SMALL.dp),
+                        .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                Spacer(modifier = Modifier.weight(1f))
+
                 Text(
                     modifier =
                         Modifier
@@ -296,6 +300,8 @@ private fun MainContent(
                         MaterialTheme.typography.titleMedium.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                         ),
+                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                    textAlign = TextAlign.Center,
                 )
 
                 PinFieldLayout(
@@ -305,6 +311,8 @@ private fun MainContent(
                         onEventSent(Event.OnQuickPinEntered(quickPin))
                     },
                 )
+
+                Spacer(modifier = Modifier.weight(2.8f))
             }
         }
 
@@ -321,10 +329,11 @@ private fun MainContent(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(top = SPACING_XX_LARGE.dp),
-                verticalArrangement = Arrangement.Center,
+                        .weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                Spacer(modifier = Modifier.weight(1f))
+
                 val subtitle =
                     if (state.userBiometricsAreEnabled) {
                         mode.subTitleWhenBiometricsEnabled
@@ -337,7 +346,6 @@ private fun MainContent(
                         MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                         ),
-                    modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                 )
                 PinFieldLayout(
@@ -350,6 +358,8 @@ private fun MainContent(
                         onEventSent(Event.OnQuickPinEntered(quickPin))
                     },
                 )
+
+                Spacer(modifier = Modifier.weight(2.8f))
             }
         }
     }
