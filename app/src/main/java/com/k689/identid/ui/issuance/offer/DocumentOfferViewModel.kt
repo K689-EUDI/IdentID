@@ -24,10 +24,9 @@ import com.k689.identid.config.ConfigNavigation
 import com.k689.identid.config.IssuanceSuccessUiConfig
 import com.k689.identid.config.NavigationType
 import com.k689.identid.config.OfferCodeUiConfig
-import com.k689.identid.config.OfferUiConfig
+import com.k689.identid.config.OfferUIConfig
 import com.k689.identid.config.PresentationMode
 import com.k689.identid.config.RequestUriConfig
-import com.k689.identid.di.common.CREDENTIAL_OFFER_ISSUANCE_SCOPE_ID
 import com.k689.identid.di.common.getOrCreateCredentialOfferScope
 import com.k689.identid.di.core.getOrCreatePresentationScope
 import com.k689.identid.extension.business.ifEmptyOrNull
@@ -56,7 +55,6 @@ import eu.europa.ec.eudi.wallet.document.DocumentId
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
 import org.koin.core.annotation.InjectedParam
-import org.koin.core.annotation.ScopeId
 import java.net.URI
 
 data class State(
@@ -118,17 +116,25 @@ sealed class Effect : ViewSideEffect {
 
 @KoinViewModel
 class DocumentOfferViewModel(
-    @ScopeId(name = CREDENTIAL_OFFER_ISSUANCE_SCOPE_ID) private val documentOfferInteractor: DocumentOfferInteractor,
     private val resourceProvider: ResourceProvider,
     private val uiSerializer: UiSerializer,
     @InjectedParam private val offerSerializedConfig: String,
+    documentOfferInteractor: DocumentOfferInteractor? = null,
 ) : MviViewModel<Event, State, Effect>() {
+    private var _documentOfferInteractor: DocumentOfferInteractor? = documentOfferInteractor
+
+    private val documentOfferInteractor: DocumentOfferInteractor
+        get() = _documentOfferInteractor
+            ?: getOrCreateCredentialOfferScope().get<DocumentOfferInteractor>().also {
+                _documentOfferInteractor = it
+            }
+
     override fun setInitialState(): State {
         val deserializedOfferUiConfig =
             uiSerializer.fromBase64(
                 offerSerializedConfig,
-                OfferUiConfig::class.java,
-                OfferUiConfig.Parser,
+                OfferUIConfig::class.java,
+                OfferUIConfig.Parser,
             ) ?: throw RuntimeException("OfferUiConfig:: is Missing or invalid")
 
         return State(
