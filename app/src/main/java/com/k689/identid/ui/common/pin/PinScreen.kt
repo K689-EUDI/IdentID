@@ -93,7 +93,7 @@ fun PinScreen(
         isLoading = state.isLoading,
         navigatableAction = state.action,
         onBack = { viewModel.setEvent(state.onBackEvent) },
-        imePaddingConfig = ImePaddingConfig.ONLY_CONTENT,
+        imePaddingConfig = ImePaddingConfig.NO_PADDING,
         stickyBottom = { paddingValues ->
             WrapStickyBottomContent(
                 modifier =

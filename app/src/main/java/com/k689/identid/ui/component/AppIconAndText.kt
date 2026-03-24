@@ -52,11 +52,11 @@ fun AppIconAndText(
         verticalAlignment = Alignment.Top,
     ) {
         WrapImage(
-            modifier = Modifier.size(width = 44.dp, height = 32.dp),
+            modifier = Modifier.size(width = 68.dp, height = 43.dp),
             iconData = appIconAndTextData.appIcon,
         )
         WrapImage(
-            modifier = Modifier.size(width = 73.dp, height = 38.dp),
+            modifier = Modifier.size(width = 98.dp, height = 62.dp),
             iconData = appIconAndTextData.appText,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
         )

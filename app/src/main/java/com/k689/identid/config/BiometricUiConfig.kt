@@ -30,7 +30,6 @@ sealed interface BiometricMode {
     ) : BiometricMode
 
     data class Login(
-        val title: String,
         val subTitleWhenBiometricsEnabled: String,
         val subTitleWhenBiometricsNotEnabled: String,
     ) : BiometricMode
