@@ -344,6 +344,8 @@
     <string name="transactions_filter_item_no_relying_party_transactions">Nėra pasikliaujančiosios šalies</string>
     <string name="transactions_screen_filters_apply">@string/generic_filters_apply</string>
     <string name="transactions_screen_filters_reset">@string/generic_filters_reset</string>
+    <string name="home_screen_no_recent_transactions">Nėra operacijų</string>
+
     <!--endregion-->
     <!-- region Document Sign -->
     <string name="document_sign_title">Pasirašyti dokumentą</string>
