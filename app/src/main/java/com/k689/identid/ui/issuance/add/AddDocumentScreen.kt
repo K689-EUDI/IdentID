@@ -19,6 +19,7 @@ package com.k689.identid.ui.issuance.add
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -73,20 +74,25 @@ import com.k689.identid.ui.component.content.BroadcastAction
 import com.k689.identid.ui.component.content.ContentScreen
 import com.k689.identid.ui.component.content.ContentTitle
 import com.k689.identid.ui.component.content.ScreenNavigateAction
+import com.k689.identid.ui.component.content.ToolbarConfig
 import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
 import com.k689.identid.ui.component.utils.LifecycleEffect
 import com.k689.identid.ui.component.utils.SIZE_LARGE
 import com.k689.identid.ui.component.utils.SPACING_LARGE
 import com.k689.identid.ui.component.utils.SPACING_MEDIUM
+import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.utils.VSpacer
 import com.k689.identid.ui.component.wrap.ButtonConfig
 import com.k689.identid.ui.component.wrap.ButtonType
 import com.k689.identid.ui.component.wrap.TextConfig
 import com.k689.identid.ui.component.wrap.WrapButton
 import com.k689.identid.ui.component.wrap.WrapIcon
+import com.k689.identid.ui.component.wrap.WrapIconButton
 import com.k689.identid.ui.component.wrap.WrapListItem
 import com.k689.identid.ui.component.wrap.WrapText
+import com.k689.identid.ui.dashboard.home.DashboardEvent
+import com.k689.identid.ui.dashboard.home.OpenSideMenuEvent
 import com.k689.identid.ui.issuance.add.model.AddDocumentUi
 import com.k689.identid.util.core.CoreActions
 import com.k689.identid.util.issuance.TestTag
@@ -95,6 +101,37 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+
+@Composable
+private fun TopBar(
+    onEventSend: (Event) -> Unit,
+) {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = SPACING_SMALL.dp,
+                    vertical = SPACING_SMALL.dp,
+                ),
+    ) {
+        // home menu icon
+        WrapIconButton(
+            modifier = Modifier.align(Alignment.CenterStart),
+            iconData = AppIcons.Close,
+            customTint = MaterialTheme.colorScheme.onSurface,
+        ) {
+            onEventSend(Event.Pop)
+        }
+
+        Text(
+            modifier = Modifier.align(Alignment.Center),
+            text = stringResource(R.string.issuance_add_document_title),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
 
 @Composable
 fun AddDocumentScreen(
@@ -106,9 +143,13 @@ fun AddDocumentScreen(
 
     ContentScreen(
         isLoading = state.isLoading,
-        navigatableAction = state.navigatableAction,
+        navigatableAction = ScreenNavigateAction.CANCELABLE,
         onBack = state.onBackAction,
         contentErrorConfig = state.error,
+        toolBarConfig =
+            ToolbarConfig(
+                title = stringResource(R.string.issuance_add_document_title),
+            ),
         broadcastAction =
             BroadcastAction(
                 intentFilters =
@@ -251,18 +292,6 @@ private fun MainContent(
     Column(
         modifier = modifier,
     ) {
-        ContentTitle(
-            modifier = Modifier.fillMaxWidth(),
-            title = state.title,
-            subtitle = state.subtitle,
-            titleStyle =
-                MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                ),
-            subtitleTestTag = TestTag.AddDocumentScreen.SUBTITLE,
-        )
-
         VSpacer.Medium()
 
         TextField(

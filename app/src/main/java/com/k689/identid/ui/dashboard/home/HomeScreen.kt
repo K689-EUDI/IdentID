@@ -592,12 +592,12 @@ private fun SeeAllDocumentsCard(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "No documents",
+                    text = stringResource(R.string.home_screen_no_documents),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text = "Add one now",
+                    text = stringResource(R.string.home_screen_add_one_now),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
