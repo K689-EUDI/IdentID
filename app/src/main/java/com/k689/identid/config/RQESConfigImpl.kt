@@ -53,6 +53,7 @@ class RQESConfigImpl(
                     R.raw.pidissuerca02_cz,
                     R.raw.pidissuerca02_ee,
                     R.raw.pidissuerca02_eu,
+                    R.raw.pidissuerca02_lt,
                     R.raw.pidissuerca02_lu,
                     R.raw.pidissuerca02_nl,
                     R.raw.pidissuerca02_pt,
