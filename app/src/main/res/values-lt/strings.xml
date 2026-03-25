@@ -267,7 +267,7 @@
     <string name="home_screen_add_document_option_online">Internetu</string>
     <string name="home_screen_sign_document">Pasirašyti dokumentą</string>
     <string name="home_screen_sign_document_description">Pasirašykite dokumentą skaitmeniniu būdu – pasirinkite failą iš savo įrenginio arba nuskaitykite QR kodą.</string>
-    <string name="home_screen_sign_document_option_from_device">Iš įrenginio</string>
+    <string name="home_screen_sign_document_option_from_device">Pasirinkti failą iš įrenginio atminties</string>
     <string name="home_screen_sign_document_option_scan_qr">Nuskaityti QR kodą</string>
     <string name="home_screen_content_description_authenticate">Autentifikuotis</string>
     <string name="home_screen_content_description_sign_document">Pasirašyti dokumentą</string>

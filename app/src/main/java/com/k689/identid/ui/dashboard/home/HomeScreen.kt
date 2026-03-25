@@ -49,6 +49,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MobileFriendly
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.BottomSheetDefaults
@@ -57,6 +58,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -250,7 +252,7 @@ fun HomeScreen(
                     }
                     IconButton(onClick = { viewModel.setEvent(Event.SignDocumentCard.SignDocumentPressed) }) {
                         Icon(
-                            imageVector = Icons.Default.Check,
+                            imageVector = Icons.Default.Edit,
                             contentDescription = "Sign document",
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
@@ -263,6 +265,7 @@ fun HomeScreen(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 shape = RoundedCornerShape(16.dp),
+                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(4.dp),
                 modifier =
                     Modifier
                         .align(Alignment.BottomEnd)
@@ -391,7 +394,6 @@ private fun Content(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    // Increased height to give room for shadows and elevation
                     .height(220.dp),
             contentPadding = PaddingValues(horizontal = 32.dp, vertical = 8.dp),
             pageSpacing = 16.dp,
@@ -407,22 +409,30 @@ private fun Content(
                             .graphicsLayer {
                                 val pageOffset =
                                     (
-                                        (pagerState.currentPage - page) +
-                                            pagerState.currentPageOffsetFraction
-                                    ).absoluteValue
-                                alpha =
-                                    lerp(
-                                        start = 0.8f,
-                                        stop = 1f,
-                                        fraction = 1f - pageOffset.coerceIn(0f, 1f),
-                                    )
-                                scaleY =
-                                    lerp(
-                                        start = 0.9f,
-                                        stop = 1f,
-                                        fraction = 1f - pageOffset.coerceIn(0f, 1f),
-                                    )
-                                clip = false
+                                            (pagerState.currentPage - page) +
+                                                    pagerState.currentPageOffsetFraction
+                                            ).absoluteValue
+
+                                val scale = lerp(
+                                    start = 0.9f,
+                                    stop = 1f,
+                                    fraction = 1f - pageOffset.coerceIn(0f, 1f),
+                                )
+
+                                // Scale both X and Y to stop the cards from looking squashed/wonky
+                                scaleX = scale
+                                scaleY = scale
+
+                                alpha = lerp(
+                                    start = 0.8f,
+                                    stop = 1f,
+                                    fraction = 1f - pageOffset.coerceIn(0f, 1f),
+                                )
+
+                                // FIX: Compute the shadow here instead of inside the Card
+                                shadowElevation = 6.dp.toPx()
+                                shape = RoundedCornerShape(16.dp)
+                                clip = true
                             },
                 )
             } else {
@@ -443,22 +453,31 @@ private fun Content(
                             .graphicsLayer {
                                 val pageOffset =
                                     (
-                                        (pagerState.currentPage - page) +
-                                            pagerState.currentPageOffsetFraction
-                                    ).absoluteValue
-                                alpha =
-                                    lerp(
-                                        start = 0.8f,
-                                        stop = 1f,
-                                        fraction = 1f - pageOffset.coerceIn(0f, 1f),
-                                    )
-                                scaleY =
-                                    lerp(
-                                        start = 0.9f,
-                                        stop = 1f,
-                                        fraction = 1f - pageOffset.coerceIn(0f, 1f),
-                                    )
-                                clip = false
+                                            (pagerState.currentPage - page) +
+                                                    pagerState.currentPageOffsetFraction
+                                            ).absoluteValue
+
+                                val scale = lerp(
+                                    start = 0.9f,
+                                    stop = 1f,
+                                    fraction = 1f - pageOffset.coerceIn(0f, 1f),
+                                )
+
+                                scaleX = scale
+                                scaleY = scale
+
+                                alpha = lerp(
+                                    start = 0.8f,
+                                    stop = 1f,
+                                    fraction = 1f - pageOffset.coerceIn(0f, 1f),
+                                )
+
+                                // Only apply the shadow if it's the actual card, not the empty state
+                                if (recentDocs.isNotEmpty()) {
+                                    shadowElevation = 4.dp.toPx()
+                                    shape = RoundedCornerShape(16.dp)
+                                    clip = true
+                                }
                             },
                 )
             }
@@ -511,8 +530,7 @@ private fun DocumentCard(
         modifier =
             modifier
                 .fillMaxSize(),
-        shape = RoundedCornerShape(16.dp), // Snappier corners closer to real card shapes
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
         Row(
@@ -520,7 +538,7 @@ private fun DocumentCard(
                 Modifier
                     .fillMaxSize()
                     .padding(horizontal = SPACING_LARGE.dp, vertical = SPACING_MEDIUM.dp),
-            verticalAlignment = Alignment.CenterVertically, // Keeping everything neatly centered vertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             // Placeholder area for the future user avatar/icon
             Box(
@@ -611,7 +629,6 @@ private fun SeeAllDocumentsCard(
                 modifier
                     .fillMaxSize(),
             shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         ) {
             Box(

@@ -68,6 +68,7 @@ import com.k689.identid.navigation.IssuanceScreens
 import com.k689.identid.navigation.helper.handleDeepLinkAction
 import com.k689.identid.ui.component.AppIcons
 import com.k689.identid.ui.component.ErrorInfo
+import com.k689.identid.ui.component.LargeActionFooter
 import com.k689.identid.ui.component.ListItemDataUi
 import com.k689.identid.ui.component.ListItemMainContentDataUi
 import com.k689.identid.ui.component.ListItemTrailingContentDataUi
@@ -282,7 +283,7 @@ private fun MainContent(
     Column(
         modifier = modifier,
     ) {
-        //VSpacer.Medium()
+        // VSpacer.Medium()
 
 /*        TextField(
             modifier =
@@ -313,7 +314,7 @@ private fun MainContent(
                 MaterialTheme.typography.headlineSmall.copy(
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
-                    //fontSize = 22.sp,
+                    // fontSize = 22.sp,
                 ),
         )
 
@@ -342,7 +343,7 @@ private fun MainContent(
         }
 
         VSpacer.Small()
-        FloatingFooter(
+        LargeActionFooter(
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -350,7 +351,8 @@ private fun MainContent(
                         top = SPACING_MEDIUM.dp,
                         bottom = SPACING_MEDIUM.dp,
                     ),
-            onEventSend = onEventSend,
+            text = stringResource(R.string.issuance_add_document_scan_qr_footer_button_text),
+            onClick = { onEventSend(Event.GoToQrScan) },
         )
     }
 }
@@ -425,57 +427,6 @@ private fun Options(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun FloatingFooter(
-    modifier: Modifier = Modifier,
-    onEventSend: (Event) -> Unit,
-) {
-/*    ElevatedCard(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
-    ) {
-    }*/
-
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        WrapButton(
-            modifier = Modifier.fillMaxWidth(),
-            buttonConfig =
-                ButtonConfig(
-                    type = ButtonType.PRIMARY,
-                    shape = RoundedCornerShape(16.dp),
-
-                    onClick = {
-                        onEventSend(Event.GoToQrScan)
-                    },
-                ),
-        ) {
-            WrapIcon(
-                iconData = AppIcons.QrScanner,
-                modifier = Modifier.padding(end = 8.dp).size(35.dp),
-            )
-            Text(
-                text = stringResource(R.string.issuance_add_document_scan_qr_footer_button_text),
-                style =
-                    MaterialTheme.typography.headlineSmall.copy(
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                    ),
-            )
         }
     }
 }

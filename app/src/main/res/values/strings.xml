@@ -266,7 +266,7 @@
     <string name="home_screen_add_document_option_online">Online</string>
     <string name="home_screen_sign_document">Sign document</string>
     <string name="home_screen_sign_document_description">Sign a document digitally by choosing a file from your device or by scanning a QR code.</string>
-    <string name="home_screen_sign_document_option_from_device">From device</string>
+    <string name="home_screen_sign_document_option_from_device">Pick a file from device storage</string>
     <string name="home_screen_sign_document_option_scan_qr">Scan QR</string>
     <!--endregion-->
     <!-- region Home Screen Learn More Popups content -->
