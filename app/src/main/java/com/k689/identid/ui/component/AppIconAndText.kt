@@ -22,11 +22,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.k689.identid.R
 import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
 import com.k689.identid.ui.component.utils.SPACING_SMALL
@@ -52,13 +57,18 @@ fun AppIconAndText(
         verticalAlignment = Alignment.Top,
     ) {
         WrapImage(
-            modifier = Modifier.size(width = 68.dp, height = 43.dp),
+            // modifier = Modifier.size(width = 68.dp, height = 43.dp),
             iconData = appIconAndTextData.appIcon,
         )
-        WrapImage(
-            modifier = Modifier.size(width = 98.dp, height = 62.dp),
-            iconData = appIconAndTextData.appText,
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+        Text(
+            modifier = Modifier.align(Alignment.CenterVertically),
+            text = stringResource(R.string.app_title),
+            style =
+                MaterialTheme.typography.titleLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 32.sp,
+                ),
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }

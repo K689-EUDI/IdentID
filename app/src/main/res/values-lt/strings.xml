@@ -141,7 +141,7 @@
     <!-- region Biometric prompt -->
     <string name="biometric_prompt_title">Biometrinis autentifikavimas</string>
     <string name="biometric_prompt_subtitle">Autentifikuokitės naudodami biometrinius duomenis</string>
-    <string name="biometric_login_biometrics_enabled_subtitle">Naudokite biometrinius duomenis, kad pasiektumėte EUDI piniginę.</string>
+    <string name="biometric_login_biometrics_enabled_subtitle">Naudokite biometrinius duomenis, kad prisijungtumėte.</string>
     <string name="biometric_login_biometrics_not_enabled_subtitle">Kad tęstumėte, įveskite PIN kodą:</string>
     <!--endregion-->
     <!-- region Biometrics -->
