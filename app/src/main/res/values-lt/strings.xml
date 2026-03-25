@@ -139,7 +139,7 @@
     <!-- region Biometric prompt -->
     <string name="biometric_prompt_title">Biometrinis autentifikavimas</string>
     <string name="biometric_prompt_subtitle">Autentifikuokitės naudodami biometrinius duomenis</string>
-    <string name="biometric_login_biometrics_enabled_subtitle">Naudokite biometrinius duomenis, kad pasiektumėte EUDI piniginę.</string>
+    <string name="biometric_login_biometrics_enabled_subtitle">Naudokite biometrinius duomenis, kad prisijungtumėte.</string>
     <string name="biometric_login_biometrics_not_enabled_subtitle">Kad tęstumėte, įveskite PIN kodą:</string>
     <!--endregion-->
     <!-- region Biometrics -->
@@ -312,7 +312,7 @@
     <string name="home_screen_add_document_option_online">Internetu</string>
     <string name="home_screen_sign_document">Pasirašyti dokumentą</string>
     <string name="home_screen_sign_document_description">Pasirašykite dokumentą skaitmeniniu būdu – pasirinkite failą iš savo įrenginio arba nuskaitykite QR kodą.</string>
-    <string name="home_screen_sign_document_option_from_device">Iš įrenginio</string>
+    <string name="home_screen_sign_document_option_from_device">Pasirinkti failą iš įrenginio atminties</string>
     <string name="home_screen_sign_document_option_scan_qr">Nuskaityti QR kodą</string>
     <string name="home_screen_content_description_authenticate">Autentifikuotis</string>
     <string name="home_screen_content_description_sign_document">Pasirašyti dokumentą</string>
@@ -500,11 +500,11 @@
     <string name="signature_qr_scan_subtitle">Nuskaitykite QR kodą, kad elektroniniu būdu pasirašytumėte dokumentą.</string>
     <!--endregion-->
     <!-- region Issuance Add Document Screen -->
-    <string name="issuance_add_document_title">Pridėti dokumentą iš įgalioto šaltinio</string>
-    <string name="issuance_add_document_subtitle">Pasirinkite skaitmeninį dokumentą iš toliau pateikto sąrašo ir pridėkite jį į savo piniginę.</string>
+    <string name="issuance_add_document_title">Pridėti dokumentą</string>
+    <string name="issuance_add_document_subtitle">Pasirinkite skaitmeninį dokumentą:</string>
     <string name="issuance_add_document_no_options">Nėra galimų dokumentų. Pabandykite kitą paieškos terminą.</string>
     <string name="issuance_add_document_scan_qr_footer_text">@string/generic_or</string>
-    <string name="issuance_add_document_scan_qr_footer_button_text">@string/generic_scan_qr</string>
+    <string name="issuance_add_document_scan_qr_footer_button_text">Skenuoti QR kodą</string>
     <string name="issuance_add_document_deferred_success_text">@string/generic_deferred_success_text</string>
     <string name="issuance_add_document_deferred_success_description">Jūsų dokumentas buvo užsakytas. Kai jis bus išduotas į jūsų piniginę, gausite pranešimą.</string>
     <string name="issuance_add_document_deferred_success_primary_button_text">@string/generic_ok</string>

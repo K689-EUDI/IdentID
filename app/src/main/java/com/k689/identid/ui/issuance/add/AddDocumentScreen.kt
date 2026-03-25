@@ -19,6 +19,7 @@ package com.k689.identid.ui.issuance.add
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,6 +52,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -66,6 +68,7 @@ import com.k689.identid.navigation.IssuanceScreens
 import com.k689.identid.navigation.helper.handleDeepLinkAction
 import com.k689.identid.ui.component.AppIcons
 import com.k689.identid.ui.component.ErrorInfo
+import com.k689.identid.ui.component.LargeActionFooter
 import com.k689.identid.ui.component.ListItemDataUi
 import com.k689.identid.ui.component.ListItemMainContentDataUi
 import com.k689.identid.ui.component.ListItemTrailingContentDataUi
@@ -73,20 +76,25 @@ import com.k689.identid.ui.component.content.BroadcastAction
 import com.k689.identid.ui.component.content.ContentScreen
 import com.k689.identid.ui.component.content.ContentTitle
 import com.k689.identid.ui.component.content.ScreenNavigateAction
+import com.k689.identid.ui.component.content.ToolbarConfig
 import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
 import com.k689.identid.ui.component.utils.LifecycleEffect
 import com.k689.identid.ui.component.utils.SIZE_LARGE
 import com.k689.identid.ui.component.utils.SPACING_LARGE
 import com.k689.identid.ui.component.utils.SPACING_MEDIUM
+import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.utils.VSpacer
 import com.k689.identid.ui.component.wrap.ButtonConfig
 import com.k689.identid.ui.component.wrap.ButtonType
 import com.k689.identid.ui.component.wrap.TextConfig
 import com.k689.identid.ui.component.wrap.WrapButton
 import com.k689.identid.ui.component.wrap.WrapIcon
+import com.k689.identid.ui.component.wrap.WrapIconButton
 import com.k689.identid.ui.component.wrap.WrapListItem
 import com.k689.identid.ui.component.wrap.WrapText
+import com.k689.identid.ui.dashboard.home.DashboardEvent
+import com.k689.identid.ui.dashboard.home.OpenSideMenuEvent
 import com.k689.identid.ui.issuance.add.model.AddDocumentUi
 import com.k689.identid.util.core.CoreActions
 import com.k689.identid.util.issuance.TestTag
@@ -95,6 +103,37 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+
+@Composable
+private fun TopBar(
+    onEventSend: (Event) -> Unit,
+) {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = SPACING_SMALL.dp,
+                    vertical = SPACING_SMALL.dp,
+                ),
+    ) {
+        // home menu icon
+        WrapIconButton(
+            modifier = Modifier.align(Alignment.CenterStart),
+            iconData = AppIcons.Close,
+            customTint = MaterialTheme.colorScheme.onSurface,
+        ) {
+            onEventSend(Event.Pop)
+        }
+
+        Text(
+            modifier = Modifier.align(Alignment.Center),
+            text = stringResource(R.string.issuance_add_document_title),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
 
 @Composable
 fun AddDocumentScreen(
@@ -106,9 +145,13 @@ fun AddDocumentScreen(
 
     ContentScreen(
         isLoading = state.isLoading,
-        navigatableAction = state.navigatableAction,
+        navigatableAction = ScreenNavigateAction.CANCELABLE,
         onBack = state.onBackAction,
         contentErrorConfig = state.error,
+        toolBarConfig =
+            ToolbarConfig(
+                title = stringResource(R.string.issuance_add_document_title),
+            ),
         broadcastAction =
             BroadcastAction(
                 intentFilters =
@@ -217,17 +260,6 @@ private fun Content(
 
         if (state.showFooterScanner) {
             VSpacer.ExtraSmall()
-            FloatingFooter(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        // Add standard margin layout spacing to the footer
-                        .padding(
-                            top = SPACING_MEDIUM.dp,
-                            bottom = SPACING_MEDIUM.dp,
-                        ),
-                onEventSend = onEventSend,
-            )
         }
     }
 
@@ -251,21 +283,9 @@ private fun MainContent(
     Column(
         modifier = modifier,
     ) {
-        ContentTitle(
-            modifier = Modifier.fillMaxWidth(),
-            title = state.title,
-            subtitle = state.subtitle,
-            titleStyle =
-                MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                ),
-            subtitleTestTag = TestTag.AddDocumentScreen.SUBTITLE,
-        )
+        // VSpacer.Medium()
 
-        VSpacer.Medium()
-
-        TextField(
+/*        TextField(
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -285,6 +305,17 @@ private fun MainContent(
                     focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 ),
+        )*/
+
+        Text(
+            text = stringResource(R.string.issuance_add_document_subtitle),
+            color = MaterialTheme.colorScheme.onSurface,
+            style =
+                MaterialTheme.typography.headlineSmall.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    // fontSize = 22.sp,
+                ),
         )
 
         if (state.noOptions) {
@@ -297,7 +328,7 @@ private fun MainContent(
 
             Options(
                 options = state.filteredOptions,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.weight(1f).fillMaxSize(),
                 onOptionClicked = { itemIds, issuerId ->
                     onEventSend(
                         Event.IssueDocument(
@@ -310,6 +341,19 @@ private fun MainContent(
                 },
             )
         }
+
+        VSpacer.Small()
+        LargeActionFooter(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        top = SPACING_MEDIUM.dp,
+                        bottom = SPACING_MEDIUM.dp,
+                    ),
+            text = stringResource(R.string.issuance_add_document_scan_qr_footer_button_text),
+            onClick = { onEventSend(Event.GoToQrScan) },
+        )
     }
 }
 
@@ -335,7 +379,7 @@ private fun Options(
                         Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.background),
-                    text = issuerId,
+                    text = issuerId.substringAfter("https://"),
                     textConfig =
                         TextConfig(
                             style =
@@ -349,6 +393,7 @@ private fun Options(
 
             itemsIndexed(
                 items = items,
+                contentType = { _, _ -> "issuer_card" },
                 key = { _, item -> "$issuerId-${item.configurationIds.joinToString(",")}" },
             ) { _, item ->
                 val testTag =
@@ -381,53 +426,6 @@ private fun Options(
                         },
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FloatingFooter(
-    modifier: Modifier = Modifier,
-    onEventSend: (Event) -> Unit,
-) {
-    ElevatedCard(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = stringResource(R.string.issuance_add_document_scan_qr_footer_text),
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold,
-            )
-
-            WrapButton(
-                modifier = Modifier.fillMaxWidth(),
-                buttonConfig =
-                    ButtonConfig(
-                        type = ButtonType.PRIMARY,
-                        onClick = {
-                            onEventSend(Event.GoToQrScan)
-                        },
-                    ),
-            ) {
-                WrapIcon(
-                    iconData = AppIcons.QrScanner,
-                    modifier = Modifier.padding(end = 8.dp).size(35.dp),
-                )
-                Text(text = stringResource(R.string.issuance_add_document_scan_qr_footer_button_text))
             }
         }
     }

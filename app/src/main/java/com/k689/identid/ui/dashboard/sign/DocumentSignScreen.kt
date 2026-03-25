@@ -18,8 +18,10 @@ package com.k689.identid.ui.dashboard.sign
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -35,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.k689.identid.R
 import com.k689.identid.ui.component.AppIcons
+import com.k689.identid.ui.component.LargeActionFooter
 import com.k689.identid.ui.component.ListItemDataUi
 import com.k689.identid.ui.component.ListItemLeadingContentDataUi
 import com.k689.identid.ui.component.ListItemMainContentDataUi
@@ -42,6 +46,7 @@ import com.k689.identid.ui.component.ListItemTrailingContentDataUi
 import com.k689.identid.ui.component.content.ContentScreen
 import com.k689.identid.ui.component.content.ContentTitle
 import com.k689.identid.ui.component.content.ScreenNavigateAction
+import com.k689.identid.ui.component.content.ToolbarConfig
 import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
 import com.k689.identid.ui.component.utils.SPACING_LARGE
@@ -66,6 +71,10 @@ internal fun DocumentSignScreen(
         navigatableAction = ScreenNavigateAction.CANCELABLE,
         onBack = { viewModel.setEvent(Event.Pop) },
         contentErrorConfig = state.error,
+        toolBarConfig =
+            ToolbarConfig(
+                title = stringResource(R.string.signature_qr_scan_title),
+            ),
     ) { contentPadding ->
         Content(
             state = state,
@@ -98,10 +107,10 @@ private fun Content(
                 .fillMaxSize()
                 .padding(paddingValues),
     ) {
-        ContentTitle(
+/*        ContentTitle(
             title = state.title,
             subtitle = state.subtitle,
-        )
+        )*/
 
         VSpacer.Medium()
 
@@ -110,7 +119,7 @@ private fun Content(
             item =
                 ListItemDataUi(
                     itemId = "from_device",
-                    leadingContentData = ListItemLeadingContentDataUi.Icon(iconData = AppIcons.SignDocumentFromDevice),
+                    leadingContentData = ListItemLeadingContentDataUi.Icon(iconData = AppIcons.Documents),
                     mainContentData =
                         ListItemMainContentDataUi.Text(
                             text = stringResource(R.string.home_screen_sign_document_option_from_device),
@@ -122,23 +131,18 @@ private fun Content(
             mainContentTextStyle = MaterialTheme.typography.titleMedium,
         )
 
-        VSpacer.Small()
+        Spacer(modifier = Modifier.weight(1f))
 
-        WrapListItem(
-            modifier = Modifier.fillMaxWidth(),
-            item =
-                ListItemDataUi(
-                    itemId = "scan_qr",
-                    leadingContentData = ListItemLeadingContentDataUi.Icon(iconData = AppIcons.SignDocumentFromQr),
-                    mainContentData =
-                        ListItemMainContentDataUi.Text(
-                            text = stringResource(R.string.home_screen_sign_document_option_scan_qr),
-                        ),
-                    trailingContentData = ListItemTrailingContentDataUi.Icon(iconData = AppIcons.KeyboardArrowRight),
-                ),
-            onItemClick = { onEventSend(Event.OnScanQrClick) },
-            mainContentVerticalPadding = SPACING_LARGE.dp,
-            mainContentTextStyle = MaterialTheme.typography.titleMedium,
+        LargeActionFooter(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        top = SPACING_MEDIUM.dp,
+                        bottom = SPACING_MEDIUM.dp,
+                    ),
+            text = stringResource(R.string.issuance_add_document_scan_qr_footer_button_text),
+            onClick = { onEventSend(Event.OnScanQrClick) },
         )
     }
 

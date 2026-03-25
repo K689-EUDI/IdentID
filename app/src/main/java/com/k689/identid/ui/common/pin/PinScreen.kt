@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,6 +56,7 @@ import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
 import com.k689.identid.ui.component.utils.SPACING_LARGE
 import com.k689.identid.ui.component.utils.SPACING_SMALL
+import com.k689.identid.ui.component.utils.VSpacer
 import com.k689.identid.ui.component.wrap.BottomSheetTextDataUi
 import com.k689.identid.ui.component.wrap.ButtonConfig
 import com.k689.identid.ui.component.wrap.ButtonType
@@ -203,6 +205,7 @@ private fun Content(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState()),
     ) {
+        VSpacer.Large()
         AppIconAndText(
             modifier =
                 Modifier
@@ -222,14 +225,14 @@ private fun Content(
                 text = state.title,
                 modifier = Modifier.testTag(TestTag.PinScreen.TITLE),
                 style =
-                    MaterialTheme.typography.headlineMedium.copy(
+                    MaterialTheme.typography.headlineSmall.copy(
                         color = MaterialTheme.colorScheme.onSurface,
                     ),
             )
             Text(
                 text = state.subtitle,
                 style =
-                    MaterialTheme.typography.bodyLarge.copy(
+                    MaterialTheme.typography.headlineSmall.copy(
                         color = MaterialTheme.colorScheme.onSurface,
                     ),
             )

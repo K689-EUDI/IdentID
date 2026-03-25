@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.k689.identid.R
@@ -297,10 +298,10 @@ private fun ColumnScope.MainContent(
                             .padding(vertical = SPACING_SMALL.dp),
                     text = mode.textAbovePin,
                     style =
-                        MaterialTheme.typography.titleMedium.copy(
+                        MaterialTheme.typography.headlineMedium.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                         ),
-                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                     textAlign = TextAlign.Center,
                 )
 
@@ -343,8 +344,9 @@ private fun ColumnScope.MainContent(
                 Text(
                     text = subtitle,
                     style =
-                        MaterialTheme.typography.bodyLarge.copy(
+                        MaterialTheme.typography.headlineSmall.copy(
                             color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 16.sp,
                         ),
                     textAlign = TextAlign.Center,
                 )

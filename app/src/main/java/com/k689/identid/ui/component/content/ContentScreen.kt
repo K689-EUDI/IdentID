@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -48,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.k689.identid.ui.component.AppIcons
 import com.k689.identid.ui.component.IconDataUi
@@ -56,6 +58,7 @@ import com.k689.identid.ui.component.loader.LoadingIndicator
 import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
 import com.k689.identid.ui.component.utils.MAX_TOOLBAR_ACTIONS
+import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.utils.TopSpacing
 import com.k689.identid.ui.component.utils.Z_STICKY
 import com.k689.identid.ui.component.utils.screenPaddings
@@ -255,11 +258,18 @@ private fun DefaultToolBar(
     keyboardController: SoftwareKeyboardController?,
     toolbarConfig: ToolbarConfig?,
 ) {
-    TopAppBar(
+    CenterAlignedTopAppBar(
+        modifier =
+            Modifier
+                .padding(
+                    horizontal = SPACING_SMALL.dp,
+                    vertical = SPACING_SMALL.dp,
+                ),
         title = {
             Text(
                 text = toolbarConfig?.title.orEmpty(),
-                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         },
         navigationIcon = {
