@@ -64,6 +64,7 @@ data class State(
     val isDocumentBookmarked: Boolean = false,
     val hideSensitiveContent: Boolean = true,
     val sheetContent: DocumentDetailsBottomSheetContent = DocumentDetailsBottomSheetContent.DeleteDocumentConfirmation,
+    val expiresAt: String = "",
 ) : ViewState
 
 sealed class Event : ViewEvent {
