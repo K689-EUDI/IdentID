@@ -250,13 +250,6 @@ private fun Content(
                 Modifier
                     .paddingFrom(paddingValues, bottom = false),
         ) {
-            // Screen title
-            state.title?.let { safeTitle ->
-                ContentTitle(
-                    title = safeTitle,
-                )
-            }
-
             AnimatedVisibility(
                 visible = state.isRevoked,
             ) {
