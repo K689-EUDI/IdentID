@@ -35,7 +35,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -73,6 +72,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,6 +94,7 @@ import com.k689.identid.R
 import com.k689.identid.extension.ui.finish
 import com.k689.identid.extension.ui.openAppSettings
 import com.k689.identid.extension.ui.openBleSettings
+import com.k689.identid.navigation.DashboardScreens
 import com.k689.identid.ui.component.AppIcons
 import com.k689.identid.ui.component.ListItemMainContentDataUi
 import com.k689.identid.ui.component.content.ContentScreen
@@ -131,8 +132,7 @@ fun HomeScreen(
     onDashboardEventSent: (DashboardEvent) -> Unit,
 ) {
     val context = LocalContext.current
-    val state: State by viewModel.viewState.collectAsStateWithLifecycle()
-    val isBottomSheetOpen = state.isBottomSheetOpen
+    val state by viewModel.viewState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -159,12 +159,7 @@ fun HomeScreen(
                 sheetContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 sheetDragHandle = { BottomSheetDefaults.DragHandle() },
                 sheetContent = {
-                    val allRecentTransactions =
-                        state.allTransactions
-                            .filter { !it.isPending }
-                            .reversed()
-
-                    val displayedTransactions = allRecentTransactions.take(5)
+                    val displayedTransactions = state.recentTransactions
 
                     LazyColumn(
                         modifier =
@@ -172,7 +167,7 @@ fun HomeScreen(
                                 .fillMaxHeight(0.80f)
                                 .padding(bottom = paddingValues.calculateBottomPadding()),
                     ) {
-                        item {
+                        item(key = "header") {
                             Text(
                                 text = stringResource(R.string.recent_transactions),
                                 style =
@@ -191,7 +186,7 @@ fun HomeScreen(
                         }
 
                         if (displayedTransactions.isEmpty()) {
-                            item {
+                            item(key = "empty_transactions") {
                                 Box(
                                     modifier =
                                         Modifier
@@ -218,15 +213,11 @@ fun HomeScreen(
                             }
 
                             // Show all button
-                            if (allRecentTransactions.size > displayedTransactions.size) {
-                                item {
+                            if (state.hasMoreTransactions) {
+                                item(key = "see_all_transactions") {
                                     androidx.compose.material3.TextButton(
                                         onClick = {
-                                            onDashboardEventSent(
-                                                com.k689.identid.ui.dashboard.dashboard.Event.SwitchTab(
-                                                    BottomNavigationItem.Transactions,
-                                                ),
-                                            )
+                                            viewModel.setEvent(Event.SeeAllTransactionsClicked)
                                         },
                                         modifier =
                                             Modifier
@@ -247,7 +238,7 @@ fun HomeScreen(
                             }
                         }
 
-                        item {
+                        item(key = "sheet_content") {
                             HomeScreenSheetContent(
                                 sheetContent = state.sheetContent,
                                 onEventSent = { event -> viewModel.setEvent(event) },
@@ -261,7 +252,7 @@ fun HomeScreen(
                     Content(
                         state = state,
                         effectFlow = viewModel.effect,
-                        onEventSent = { viewModel.setEvent(it) },
+                        onEventSent = viewModel::setEvent,
                         onNavigationRequested = { handleNavigationEffect(it, navHostController, context, onDashboardEventSent) },
                         coroutineScope = scope,
                         bottomSheetState = scaffoldState.bottomSheetState,
@@ -275,38 +266,16 @@ fun HomeScreen(
                 }
             }
 
-            Surface(
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(
-                            start = SPACING_LARGE.dp,
-                            bottom = SPACING_LARGE.dp + paddingValues.calculateBottomPadding(),
-                        ),
-                shape = RoundedCornerShape(32.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shadowElevation = 4.dp,
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
-                ) {
-                    IconButton(onClick = { viewModel.setEvent(Event.AuthenticateCard.AuthenticatePressed) }) {
-                        Icon(
-                            imageVector = Icons.Default.MobileFriendly,
-                            contentDescription = "Authenticate",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                    }
-                    IconButton(onClick = { viewModel.setEvent(Event.SignDocumentCard.SignDocumentPressed) }) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Sign document",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                    }
-                }
-            }
+            QuickActions(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(
+                        start = SPACING_LARGE.dp,
+                        bottom = SPACING_LARGE.dp + paddingValues.calculateBottomPadding(),
+                    ),
+                onAuthenticateClick = { viewModel.setEvent(Event.AuthenticateCard.AuthenticatePressed) },
+                onSignDocumentClick = { viewModel.setEvent(Event.SignDocumentCard.SignDocumentPressed) }
+            )
 
             FloatingActionButton(
                 onClick = { viewModel.setEvent(Event.AddDocumentsClicked) },
@@ -330,7 +299,7 @@ fun HomeScreen(
         }
     }
 
-    if (isBottomSheetOpen && state.sheetContent != HomeScreenBottomSheetContent.None) {
+    if (state.isBottomSheetOpen && state.sheetContent != HomeScreenBottomSheetContent.None) {
         WrapModalBottomSheet(
             onDismissRequest = {
                 viewModel.setEvent(
@@ -343,7 +312,7 @@ fun HomeScreen(
         ) {
             HomeScreenSheetContent(
                 sheetContent = state.sheetContent,
-                onEventSent = { event -> viewModel.setEvent(event) },
+                onEventSent = viewModel::setEvent,
             )
         }
     }
@@ -360,6 +329,40 @@ fun HomeScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+}
+
+@Composable
+private fun QuickActions(
+    modifier: Modifier = Modifier,
+    onAuthenticateClick: () -> Unit,
+    onSignDocumentClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(32.dp),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        shadowElevation = 4.dp,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+        ) {
+            IconButton(onClick = onAuthenticateClick) {
+                Icon(
+                    imageVector = Icons.Default.MobileFriendly,
+                    contentDescription = "Authenticate",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+            IconButton(onClick = onSignDocumentClick) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Sign document",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
         }
     }
 }
@@ -408,9 +411,10 @@ private fun Content(
 ) {
     val scrollState = rememberScrollState()
 
-    val recentDocs = state.allDocuments.filter { !it.isPending }.take(3)
-
-    val pageCount = if (recentDocs.isEmpty()) 1 else recentDocs.size + 1
+    val recentDocs = state.recentDocuments
+    val pageCount = remember(recentDocs) {
+        if (recentDocs.isEmpty()) 1 else recentDocs.size + 1
+    }
     val pagerState = rememberPagerState(pageCount = { pageCount })
 
     Column(
@@ -449,9 +453,10 @@ private fun Content(
             beyondViewportPageCount = 1,
         ) { page ->
             if (page < recentDocs.size) {
+                val doc = recentDocs[page]
                 DocumentCard(
-                    document = recentDocs[page],
-                    onClicked = { onEventSent(Event.DocumentClicked(recentDocs[page].documentUi.uiData.itemId)) },
+                    document = doc,
+                    onClicked = { onEventSent(Event.DocumentClicked(doc.documentUi.uiData.itemId)) },
                     modifier =
                         Modifier
                             .graphicsLayer {
@@ -461,25 +466,13 @@ private fun Content(
                                             pagerState.currentPageOffsetFraction
                                     ).absoluteValue
 
-                                val scale =
-                                    lerp(
-                                        start = 0.9f,
-                                        stop = 1f,
-                                        fraction = 1f - pageOffset.coerceIn(0f, 1f),
-                                    )
+                                val fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                                val scale = lerp(0.9f, 1f, fraction)
 
-                                // Scale both X and Y to stop the cards from looking squashed/wonky
                                 scaleX = scale
                                 scaleY = scale
+                                alpha = lerp(0.8f, 1f, fraction)
 
-                                alpha =
-                                    lerp(
-                                        start = 0.8f,
-                                        stop = 1f,
-                                        fraction = 1f - pageOffset.coerceIn(0f, 1f),
-                                    )
-
-                                // FIX: Compute the shadow here instead of inside the Card
                                 shadowElevation = 6.dp.toPx()
                                 shape = RoundedCornerShape(16.dp)
                                 clip = true
@@ -492,10 +485,7 @@ private fun Content(
                         if (recentDocs.isEmpty()) {
                             onEventSent(Event.AddDocumentsClicked)
                         } else {
-                            onDashboardEventSent(
-                                com.k689.identid.ui.dashboard.dashboard.Event
-                                    .SwitchTab(BottomNavigationItem.Documents),
-                            )
+                            onEventSent(Event.SeeAllDocumentsClicked)
                         }
                     },
                     modifier =
@@ -507,24 +497,13 @@ private fun Content(
                                             pagerState.currentPageOffsetFraction
                                     ).absoluteValue
 
-                                val scale =
-                                    lerp(
-                                        start = 0.9f,
-                                        stop = 1f,
-                                        fraction = 1f - pageOffset.coerceIn(0f, 1f),
-                                    )
+                                val fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                                val scale = lerp(0.9f, 1f, fraction)
 
                                 scaleX = scale
                                 scaleY = scale
+                                alpha = lerp(0.8f, 1f, fraction)
 
-                                alpha =
-                                    lerp(
-                                        start = 0.8f,
-                                        stop = 1f,
-                                        fraction = 1f - pageOffset.coerceIn(0f, 1f),
-                                    )
-
-                                // Only apply the shadow if it's the actual card, not the empty state
                                 if (recentDocs.isNotEmpty()) {
                                     shadowElevation = 4.dp.toPx()
                                     shape = RoundedCornerShape(16.dp)
@@ -540,7 +519,7 @@ private fun Content(
         RequiredPermissionsAsk(state, onEventSent)
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(effectFlow) {
         effectFlow
             .onEach { effect ->
                 when (effect) {
@@ -815,17 +794,19 @@ private fun RequiredPermissionsAsk(
     state: State,
     onEventSend: (Event) -> Unit,
 ) {
-    val permissions: MutableList<String> = mutableListOf()
+    val permissions: MutableList<String> = remember(state.isBleCentralClientModeEnabled) {
+        val list = mutableListOf<String>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            list.add(Manifest.permission.BLUETOOTH_ADVERTISE)
+            list.add(Manifest.permission.BLUETOOTH_SCAN)
+            list.add(Manifest.permission.BLUETOOTH_CONNECT)
+        }
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        permissions.add(Manifest.permission.BLUETOOTH_ADVERTISE)
-        permissions.add(Manifest.permission.BLUETOOTH_SCAN)
-        permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
-    }
-
-    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2 && state.isBleCentralClientModeEnabled) {
-        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
-        permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2 && state.isBleCentralClientModeEnabled) {
+            list.add(Manifest.permission.ACCESS_FINE_LOCATION)
+            list.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+        }
+        list
     }
 
     val permissionsState = rememberMultiplePermissionsState(permissions = permissions)

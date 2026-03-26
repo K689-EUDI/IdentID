@@ -50,6 +50,10 @@ sealed class CommonScreens {
 sealed class DashboardScreens {
     data object Dashboard : Screen(name = "DASHBOARD")
 
+    data object Documents : Screen(name = "DOCUMENTS")
+
+    data object Transactions : Screen(name = "TRANSACTIONS")
+
     data object Settings : Screen(name = "SETTINGS")
 
     data object Preferences : Screen(name = "PREFERENCES")
