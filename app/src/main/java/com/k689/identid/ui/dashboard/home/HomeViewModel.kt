@@ -350,7 +350,7 @@ class HomeViewModel(
             }
 
             is Event.SeeAllDocumentsClicked -> {
-                setEffect { Effect.SwitchTab(BottomNavigationItem.Documents) }
+                navigateToAllDocuments()
             }
         }
     }
@@ -417,6 +417,14 @@ class HomeViewModel(
         setEffect {
             Effect.Navigation.SwitchScreen(
                 screenRoute = DashboardScreens.DocumentSign.screenRoute,
+            )
+        }
+    }
+
+    private fun navigateToAllDocuments() {
+        setEffect {
+            Effect.Navigation.SwitchScreen(
+                screenRoute = DashboardScreens.Documents.screenRoute,
             )
         }
     }

@@ -77,6 +77,7 @@ import com.k689.identid.ui.component.SectionTitle
 import com.k689.identid.ui.component.content.BroadcastAction
 import com.k689.identid.ui.component.content.ContentScreen
 import com.k689.identid.ui.component.content.ScreenNavigateAction
+import com.k689.identid.ui.component.content.ToolbarConfig
 import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
 import com.k689.identid.ui.component.utils.HSpacer
@@ -134,15 +135,13 @@ fun DocumentsScreen(
 
     ContentScreen(
         isLoading = state.isLoading,
-        navigatableAction = ScreenNavigateAction.NONE,
-        onBack = { context.finish() },
+        navigatableAction = ScreenNavigateAction.CANCELABLE,
+        onBack = { viewModel.setEvent(Event.Pop) },
         contentErrorConfig = null,
-        topBar = {
-            TopBar(
-                onEventSend = { viewModel.setEvent(it) },
-                onDashboardEventSent = onDashboardEventSent,
-            )
-        },
+        toolBarConfig =
+            ToolbarConfig(
+                title = stringResource(R.string.documents_screen_title),
+            ),
         broadcastAction =
             BroadcastAction(
                 intentFilters =
@@ -196,7 +195,7 @@ private fun handleNavigationEffect(
 ) {
     when (navigationEffect) {
         is Effect.Navigation.Pop -> {
-            context.finish()
+            navController.popBackStack()
         }
 
         is Effect.Navigation.SwitchScreen -> {
@@ -533,7 +532,7 @@ private fun DocumentsSheetContent(
         }
 
         is DocumentsBottomSheetContent.AddDocument -> {
-            BottomSheetWithTwoBigIcons(
+            BottomSheetWithOptionsList(
                 textData =
                     BottomSheetTextDataUi(
                         title = stringResource(R.string.documents_screen_add_document_title),
@@ -553,7 +552,7 @@ private fun DocumentsSheetContent(
                         ),
                     ),
                 onEventSent = onEventSent,
-                hostTab = BottomNavigationItem.Documents.route.lowercase(),
+                //hostTab = BottomNavigationItem.Documents.route.lowercase(),
             )
         }
 

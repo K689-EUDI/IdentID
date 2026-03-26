@@ -94,6 +94,7 @@ import com.k689.identid.R
 import com.k689.identid.extension.ui.finish
 import com.k689.identid.extension.ui.openAppSettings
 import com.k689.identid.extension.ui.openBleSettings
+import com.k689.identid.navigation.DashboardScreens
 import com.k689.identid.ui.component.AppIcons
 import com.k689.identid.ui.component.ListItemMainContentDataUi
 import com.k689.identid.ui.component.content.ContentScreen
@@ -492,10 +493,7 @@ private fun Content(
                         if (recentDocs.isEmpty()) {
                             onEventSent(Event.AddDocumentsClicked)
                         } else {
-                            onDashboardEventSent(
-                                com.k689.identid.ui.dashboard.dashboard.Event
-                                    .SwitchTab(BottomNavigationItem.Documents),
-                            )
+                            onEventSent(Event.SeeAllDocumentsClicked)
                         }
                     },
                     modifier =
