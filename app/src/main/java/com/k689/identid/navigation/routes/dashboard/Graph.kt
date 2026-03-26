@@ -29,10 +29,12 @@ import com.k689.identid.navigation.ModuleRoute
 import com.k689.identid.ui.dashboard.authenticate.AuthenticateScreen
 import com.k689.identid.ui.dashboard.dashboard.DashboardScreen
 import com.k689.identid.ui.dashboard.documents.detail.DocumentDetailsScreen
+import com.k689.identid.ui.dashboard.documents.list.DocumentsScreen
 import com.k689.identid.ui.dashboard.preferences.PreferencesScreen
 import com.k689.identid.ui.dashboard.settings.SettingsScreen
 import com.k689.identid.ui.dashboard.sign.DocumentSignScreen
 import com.k689.identid.ui.dashboard.transactions.detail.TransactionDetailsScreen
+import com.k689.identid.ui.dashboard.transactions.list.TransactionsScreen
 import com.k689.identid.ui.pseudonym.detail.PseudonymDetailScreen
 import com.k689.identid.ui.pseudonym.list.PseudonymListScreen
 import com.k689.identid.ui.pseudonym.transactions.PseudonymTransactionLogDetailScreen
@@ -61,6 +63,28 @@ fun NavGraphBuilder.featureDashboardGraph(navController: NavController) {
                 documentsViewModel = koinViewModel(),
                 homeViewModel = koinViewModel(),
                 transactionsViewModel = koinViewModel(),
+            )
+        }
+
+        // Add Documents screen
+        composable(
+            route = DashboardScreens.Documents.screenRoute,
+        ) {
+            DocumentsScreen(
+                navHostController = navController,
+                viewModel = koinViewModel(),
+                onDashboardEventSent = { /* handle if needed */ },
+            )
+        }
+
+        // Add Transactions screen
+        composable(
+            route = DashboardScreens.Transactions.screenRoute,
+        ) {
+            TransactionsScreen(
+                navHostController = navController,
+                viewModel = koinViewModel(),
+                onDashboardEventSent = { /* handle if needed */ },
             )
         }
 
@@ -177,13 +201,14 @@ fun NavGraphBuilder.featureDashboardGraph(navController: NavController) {
         ) {
             PseudonymDetailScreen(
                 navController = navController,
-                viewModel = koinViewModel(
-                    parameters = {
-                        parametersOf(
-                            it.arguments?.getString("pseudonymId").orEmpty(),
-                        )
-                    },
-                ),
+                viewModel =
+                    koinViewModel(
+                        parameters = {
+                            parametersOf(
+                                it.arguments?.getString("pseudonymId").orEmpty(),
+                            )
+                        },
+                    ),
             )
         }
 
@@ -207,13 +232,14 @@ fun NavGraphBuilder.featureDashboardGraph(navController: NavController) {
         ) {
             PseudonymTransactionLogDetailScreen(
                 navController = navController,
-                viewModel = koinViewModel(
-                    parameters = {
-                        parametersOf(
-                            it.arguments?.getString("logId").orEmpty(),
-                        )
-                    },
-                ),
+                viewModel =
+                    koinViewModel(
+                        parameters = {
+                            parametersOf(
+                                it.arguments?.getString("logId").orEmpty(),
+                            )
+                        },
+                    ),
             )
         }
     }

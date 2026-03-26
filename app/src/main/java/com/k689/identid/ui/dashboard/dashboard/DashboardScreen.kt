@@ -96,23 +96,14 @@ internal fun DashboardScreen(
             Modifier
                 .padding(top = SPACING_SMALL.dp),
     ) {
-        NavHost(
-            modifier =
-                Modifier
-                    .fillMaxSize(),
-            navController = bottomNavigationController,
-            startDestination = BottomNavigationItem.Home.route,
-        ) {
-            composable(BottomNavigationItem.Home.route) {
-                HomeScreen(
-                    hostNavController,
-                    homeViewModel,
-                    onDashboardEventSent = { event ->
-                        viewModel.setEvent(event)
-                    },
-                )
-            }
-            composable(BottomNavigationItem.Documents.route) {
+        HomeScreen(
+            hostNavController,
+            homeViewModel,
+            onDashboardEventSent = { event ->
+                viewModel.setEvent(event)
+            },
+        )
+ /*           composable(BottomNavigationItem.Documents.route) {
                 DocumentsScreen(
                     hostNavController,
                     documentsViewModel,
@@ -129,8 +120,7 @@ internal fun DashboardScreen(
                         viewModel.setEvent(event)
                     },
                 )
-            }
-        }
+            }*/
 
         if (state.isBottomSheetOpen) {
             WrapModalBottomSheet(
