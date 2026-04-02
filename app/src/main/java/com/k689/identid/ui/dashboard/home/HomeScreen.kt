@@ -55,6 +55,7 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -66,6 +67,7 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
@@ -94,7 +96,6 @@ import com.k689.identid.R
 import com.k689.identid.extension.ui.finish
 import com.k689.identid.extension.ui.openAppSettings
 import com.k689.identid.extension.ui.openBleSettings
-import com.k689.identid.navigation.DashboardScreens
 import com.k689.identid.ui.component.AppIcons
 import com.k689.identid.ui.component.ListItemMainContentDataUi
 import com.k689.identid.ui.component.content.ContentScreen
@@ -110,7 +111,8 @@ import com.k689.identid.ui.component.wrap.BottomSheetTextDataUi
 import com.k689.identid.ui.component.wrap.DialogBottomSheet
 import com.k689.identid.ui.component.wrap.WrapIconButton
 import com.k689.identid.ui.component.wrap.WrapModalBottomSheet
-import com.k689.identid.ui.dashboard.component.BottomNavigationItem
+import com.k689.identid.ui.dashboard.home.components.DrawerMenuItem
+import com.k689.identid.ui.dashboard.home.components.HomeDrawer
 import com.k689.identid.ui.dashboard.transactions.model.TransactionStatusUi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -145,156 +147,172 @@ fun HomeScreen(
                 ),
         )
 
-    ContentScreen(
-        isLoading = state.isLoading,
-        navigatableAction = ScreenNavigateAction.NONE,
-        onBack = { context.finish() },
-    ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            BottomSheetScaffold(
-                modifier = Modifier.fillMaxSize().statusBarsPadding(),
-                scaffoldState = scaffoldState,
-                sheetShadowElevation = 16.dp,
-                sheetPeekHeight = 410.dp,
-                sheetContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                sheetDragHandle = { BottomSheetDefaults.DragHandle() },
-                sheetContent = {
-                    val displayedTransactions = state.recentTransactions
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
 
-                    LazyColumn(
-                        modifier =
-                            Modifier
-                                .fillMaxHeight(0.80f)
-                                .padding(bottom = paddingValues.calculateBottomPadding()),
-                    ) {
-                        item(key = "header") {
-                            Text(
-                                text = stringResource(R.string.recent_transactions),
-                                style =
-                                    MaterialTheme.typography.headlineSmall.copy(
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontWeight = FontWeight.Bold,
-                                    ),
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(
-                                            horizontal = SPACING_LARGE.dp,
-                                            vertical = SPACING_SMALL.dp,
+    HomeDrawer(
+        drawerState = drawerState,
+        menuItems = DrawerMenuItem.all,
+        onMenuItemClick = { item ->
+            coroutineScope.launch { drawerState.close() }
+            viewModel.setEvent(Event.DrawerMenuItemClicked(item))
+        },
+    ) {
+        ContentScreen(
+            isLoading = state.isLoading,
+            navigatableAction = ScreenNavigateAction.NONE,
+            onBack = { context.finish() },
+        ) { paddingValues ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                BottomSheetScaffold(
+                    modifier = Modifier.fillMaxSize().statusBarsPadding(),
+                    scaffoldState = scaffoldState,
+                    sheetShadowElevation = 16.dp,
+                    sheetPeekHeight = 410.dp,
+                    sheetContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    sheetDragHandle = { BottomSheetDefaults.DragHandle() },
+                    sheetContent = {
+                        val displayedTransactions = state.recentTransactions
+
+                        LazyColumn(
+                            modifier =
+                                Modifier
+                                    .fillMaxHeight(0.80f)
+                                    .padding(bottom = paddingValues.calculateBottomPadding()),
+                        ) {
+                            item(key = "header") {
+                                Text(
+                                    text = stringResource(R.string.recent_transactions),
+                                    style =
+                                        MaterialTheme.typography.headlineSmall.copy(
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontWeight = FontWeight.Bold,
                                         ),
-                            )
-                        }
-
-                        if (displayedTransactions.isEmpty()) {
-                            item(key = "empty_transactions") {
-                                Box(
                                     modifier =
                                         Modifier
                                             .fillMaxWidth()
-                                            .padding(vertical = 64.dp),
-                                ) {
-                                    Text(
-                                        text = "No recent transactions",
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.align(Alignment.Center),
-                                    )
-                                }
-                            }
-                        } else {
-                            items(
-                                items = displayedTransactions,
-                                key = { it.transactionUi.uiData.header.itemId },
-                            ) { transaction ->
-                                RecentTransactionItem(
-                                    transaction = transaction,
-                                    onTransactionClicked = { viewModel.setEvent(Event.TransactionClicked(it)) },
+                                            .padding(
+                                                horizontal = SPACING_LARGE.dp,
+                                                vertical = SPACING_SMALL.dp,
+                                            ),
                                 )
                             }
 
-                            // Show all button
-                            if (state.hasMoreTransactions) {
-                                item(key = "see_all_transactions") {
-                                    androidx.compose.material3.TextButton(
-                                        onClick = {
-                                            viewModel.setEvent(Event.SeeAllTransactionsClicked)
-                                        },
+                            if (displayedTransactions.isEmpty()) {
+                                item(key = "empty_transactions") {
+                                    Box(
                                         modifier =
                                             Modifier
                                                 .fillMaxWidth()
-                                                .padding(
-                                                    horizontal = SPACING_LARGE.dp,
-                                                    vertical = SPACING_SMALL.dp,
-                                                ),
+                                                .padding(vertical = 64.dp),
                                     ) {
                                         Text(
-                                            text = "Show all transactions",
-                                            style = MaterialTheme.typography.labelLarge,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontWeight = FontWeight.Bold,
+                                            text = "No recent transactions",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.align(Alignment.Center),
                                         )
                                     }
                                 }
+                            } else {
+                                items(
+                                    items = displayedTransactions,
+                                    key = { it.transactionUi.uiData.header.itemId },
+                                ) { transaction ->
+                                    RecentTransactionItem(
+                                        transaction = transaction,
+                                        onTransactionClicked = { viewModel.setEvent(Event.TransactionClicked(it)) },
+                                    )
+                                }
+
+                                // Show all button
+                                if (state.hasMoreTransactions) {
+                                    item(key = "see_all_transactions") {
+                                        androidx.compose.material3.TextButton(
+                                            onClick = {
+                                                viewModel.setEvent(Event.SeeAllTransactionsClicked)
+                                            },
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(
+                                                        horizontal = SPACING_LARGE.dp,
+                                                        vertical = SPACING_SMALL.dp,
+                                                    ),
+                                        ) {
+                                            Text(
+                                                text = "Show all transactions",
+                                                style = MaterialTheme.typography.labelLarge,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.Bold,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            item(key = "sheet_content") {
+                                HomeScreenSheetContent(
+                                    sheetContent = state.sheetContent,
+                                    onEventSent = { event -> viewModel.setEvent(event) },
+                                )
                             }
                         }
-
-                        item(key = "sheet_content") {
-                            HomeScreenSheetContent(
-                                sheetContent = state.sheetContent,
-                                onEventSent = { event -> viewModel.setEvent(event) },
-                            )
-                        }
+                    },
+                ) { scaffoldPadding ->
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        TopBar(
+                            onMenuClick = { coroutineScope.launch { drawerState.open() } },
+                            onDashboardEventSent = onDashboardEventSent,
+                        )
+                        Content(
+                            state = state,
+                            effectFlow = viewModel.effect,
+                            onEventSent = viewModel::setEvent,
+                            onNavigationRequested = { handleNavigationEffect(it, navHostController, context) },
+                            coroutineScope = scope,
+                            bottomSheetState = scaffoldState.bottomSheetState,
+                            paddingValues =
+                                PaddingValues(
+                                    top = scaffoldPadding.calculateTopPadding(),
+                                    bottom = scaffoldPadding.calculateBottomPadding(),
+                                ),
+                            onDashboardEventSent = onDashboardEventSent,
+                        )
                     }
-                },
-            ) { scaffoldPadding ->
-                Column(modifier = Modifier.fillMaxSize()) {
-                    TopBar(onDashboardEventSent = onDashboardEventSent)
-                    Content(
-                        state = state,
-                        effectFlow = viewModel.effect,
-                        onEventSent = viewModel::setEvent,
-                        onNavigationRequested = { handleNavigationEffect(it, navHostController, context, onDashboardEventSent) },
-                        coroutineScope = scope,
-                        bottomSheetState = scaffoldState.bottomSheetState,
-                        paddingValues =
-                            PaddingValues(
-                                top = scaffoldPadding.calculateTopPadding(),
-                                bottom = scaffoldPadding.calculateBottomPadding(),
+                }
+
+                QuickActions(
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(
+                                start = SPACING_LARGE.dp,
+                                bottom = SPACING_LARGE.dp + paddingValues.calculateBottomPadding(),
                             ),
-                        onDashboardEventSent = onDashboardEventSent,
+                    onAuthenticateClick = { viewModel.setEvent(Event.AuthenticateCard.AuthenticatePressed) },
+                    onSignDocumentClick = { viewModel.setEvent(Event.SignDocumentCard.SignDocumentPressed) },
+                )
+
+                FloatingActionButton(
+                    onClick = { viewModel.setEvent(Event.AddDocumentsClicked) },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(4.dp),
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(
+                                end = SPACING_LARGE.dp,
+                                bottom = SPACING_LARGE.dp + paddingValues.calculateBottomPadding(),
+                            ),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "Add document",
                     )
                 }
-            }
-
-            QuickActions(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(
-                        start = SPACING_LARGE.dp,
-                        bottom = SPACING_LARGE.dp + paddingValues.calculateBottomPadding(),
-                    ),
-                onAuthenticateClick = { viewModel.setEvent(Event.AuthenticateCard.AuthenticatePressed) },
-                onSignDocumentClick = { viewModel.setEvent(Event.SignDocumentCard.SignDocumentPressed) }
-            )
-
-            FloatingActionButton(
-                onClick = { viewModel.setEvent(Event.AddDocumentsClicked) },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                shape = RoundedCornerShape(16.dp),
-                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(4.dp),
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(
-                            end = SPACING_LARGE.dp,
-                            bottom = SPACING_LARGE.dp + paddingValues.calculateBottomPadding(),
-                        ),
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = "Add document",
-                )
             }
         }
     }
@@ -337,7 +355,7 @@ fun HomeScreen(
 private fun QuickActions(
     modifier: Modifier = Modifier,
     onAuthenticateClick: () -> Unit,
-    onSignDocumentClick: () -> Unit
+    onSignDocumentClick: () -> Unit,
 ) {
     Surface(
         modifier = modifier,
@@ -369,6 +387,7 @@ private fun QuickActions(
 
 @Composable
 private fun TopBar(
+    onMenuClick: () -> Unit,
     onDashboardEventSent: (DashboardEvent) -> Unit,
 ) {
     Box(
@@ -386,7 +405,7 @@ private fun TopBar(
             iconData = AppIcons.Menu,
             customTint = MaterialTheme.colorScheme.onSurface,
         ) {
-            onDashboardEventSent(OpenSideMenuEvent)
+            onMenuClick()
         }
 
         Text(
@@ -412,9 +431,10 @@ private fun Content(
     val scrollState = rememberScrollState()
 
     val recentDocs = state.recentDocuments
-    val pageCount = remember(recentDocs) {
-        if (recentDocs.isEmpty()) 1 else recentDocs.size + 1
-    }
+    val pageCount =
+        remember(recentDocs) {
+            if (recentDocs.isEmpty()) 1 else recentDocs.size + 1
+        }
     val pagerState = rememberPagerState(pageCount = { pageCount })
 
     Column(
@@ -734,7 +754,6 @@ private fun handleNavigationEffect(
     navigationEffect: Effect.Navigation,
     navController: NavController,
     context: Context,
-    onDashboardEventSent: (DashboardEvent) -> Unit,
 ) {
     when (navigationEffect) {
         is Effect.Navigation.SwitchScreen -> {
@@ -794,20 +813,21 @@ private fun RequiredPermissionsAsk(
     state: State,
     onEventSend: (Event) -> Unit,
 ) {
-    val permissions: MutableList<String> = remember(state.isBleCentralClientModeEnabled) {
-        val list = mutableListOf<String>()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            list.add(Manifest.permission.BLUETOOTH_ADVERTISE)
-            list.add(Manifest.permission.BLUETOOTH_SCAN)
-            list.add(Manifest.permission.BLUETOOTH_CONNECT)
-        }
+    val permissions: MutableList<String> =
+        remember(state.isBleCentralClientModeEnabled) {
+            val list = mutableListOf<String>()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                list.add(Manifest.permission.BLUETOOTH_ADVERTISE)
+                list.add(Manifest.permission.BLUETOOTH_SCAN)
+                list.add(Manifest.permission.BLUETOOTH_CONNECT)
+            }
 
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2 && state.isBleCentralClientModeEnabled) {
-            list.add(Manifest.permission.ACCESS_FINE_LOCATION)
-            list.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2 && state.isBleCentralClientModeEnabled) {
+                list.add(Manifest.permission.ACCESS_FINE_LOCATION)
+                list.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+            }
+            list
         }
-        list
-    }
 
     val permissionsState = rememberMultiplePermissionsState(permissions = permissions)
 
@@ -861,7 +881,7 @@ private fun HomeScreenContentPreview() {
                 },
             ) { scaffoldPadding ->
                 Column(modifier = Modifier.fillMaxSize()) {
-                    TopBar(onDashboardEventSent = {})
+                    TopBar(onMenuClick = {}, onDashboardEventSent = {})
                     Content(
                         state =
                             State(

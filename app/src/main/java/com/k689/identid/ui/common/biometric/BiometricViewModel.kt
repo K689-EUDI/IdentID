@@ -242,13 +242,22 @@ class BiometricViewModel(
             }
 
             is Event.OnQuickPinEntered -> {
-                setState {
-                    copy(
-                        quickPin = event.quickPin,
-                        error = null,
-                    )
+                // Optimization: Only update state and authorize when the PIN is complete.
+                // This avoids redundant recompositions of the entire screen for every digit.
+                if (event.quickPin.length == viewState.value.quickPinSize) {
+                    setState {
+                        copy(
+                            quickPin = event.quickPin,
+                            error = null,
+                        )
+                    }
+                    authorizeWithPin(event.quickPin)
+                } else if (!viewState.value.quickPinError.isNullOrEmpty()) {
+                    // Clear error if user starts typing again
+                    setState {
+                        copy(quickPinError = null)
+                    }
                 }
-                authorizeWithPin(event.quickPin)
             }
 
             is Event.OnMaxAttemptsReached -> {
