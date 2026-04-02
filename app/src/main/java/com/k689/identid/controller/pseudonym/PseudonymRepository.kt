@@ -66,6 +66,7 @@ class PseudonymRepository(
             keystoreAlias = keystoreAlias,
             userId = Base64.encodeToString(userId, Base64.URL_SAFE or Base64.NO_WRAP),
             userName = userName,
+            signCount = 0,
             createdAt = now,
         )
         pseudonymDao.store(pseudonym)
@@ -84,19 +85,24 @@ class PseudonymRepository(
         clientDataHash: ByteArray,
     ): PseudonymAuthResult? {
         val pseudonym = pseudonymDao.getById(pseudonymId) ?: return null
+        val nextSignCount = pseudonym.signCount + 1
 
         val rpIdHash = WebAuthnDataEncoder.rpIdHash(pseudonym.rpId)
         val authData = WebAuthnDataEncoder.encodeAuthenticatorData(
             rpIdHash = rpIdHash,
             flags = WebAuthnDataEncoder.FLAG_UP_UV,
-            signCount = 1,
+            signCount = nextSignCount,
         )
 
         val signedData = authData + clientDataHash
         val signature = keyManager.sign(pseudonym.keystoreAlias, signedData)
 
-        // Update lastUsedAt
-        pseudonymDao.update(pseudonym.copy(lastUsedAt = System.currentTimeMillis()))
+        pseudonymDao.update(
+            pseudonym.copy(
+                signCount = nextSignCount,
+                lastUsedAt = System.currentTimeMillis(),
+            )
+        )
 
         val userHandle = Base64.decode(pseudonym.userId, Base64.URL_SAFE or Base64.NO_WRAP)
 

@@ -39,7 +39,8 @@ fun provideAppDatabase(context: Context): DatabaseService =
             context,
             DatabaseService::class.java,
             "eudi.app.wallet.storage",
-        ).fallbackToDestructiveMigration(true)
+        ).addMigrations(DatabaseService.MIGRATION_3_4)
+        .fallbackToDestructiveMigration(true)
         .build()
 
 @Single

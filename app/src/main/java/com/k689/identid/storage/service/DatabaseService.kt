@@ -18,6 +18,8 @@ package com.k689.identid.storage.service
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.k689.identid.model.storage.Bookmark
 import com.k689.identid.model.storage.Pseudonym
 import com.k689.identid.model.storage.PseudonymTransactionLog
@@ -37,7 +39,7 @@ import com.k689.identid.storage.dao.TransactionLogDao
         Pseudonym::class,
         PseudonymTransactionLog::class,
     ],
-    version = 3,
+    version = 4,
 )
 abstract class DatabaseService : RoomDatabase() {
     abstract fun bookmarkDao(): BookmarkDao
@@ -49,4 +51,15 @@ abstract class DatabaseService : RoomDatabase() {
     abstract fun pseudonymDao(): PseudonymDao
 
     abstract fun pseudonymTransactionLogDao(): PseudonymTransactionLogDao
+
+    companion object {
+        val MIGRATION_3_4 =
+            object : Migration(3, 4) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "ALTER TABLE pseudonyms ADD COLUMN signCount INTEGER NOT NULL DEFAULT 0"
+                    )
+                }
+            }
+    }
 }

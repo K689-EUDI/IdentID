@@ -19,6 +19,7 @@ data class Pseudonym(
     val userAlias: String? = null,
     val userId: String,
     val userName: String,
+    val signCount: Int = 0,
     val createdAt: Long,
     val lastUsedAt: Long? = null,
 )
