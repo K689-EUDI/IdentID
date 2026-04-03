@@ -177,7 +177,22 @@ class PinViewModel(
     override fun handleEvents(event: Event) {
         when (event) {
             is Event.OnQuickPinEntered -> {
-                validateForm(event.quickPin)
+                // Optimization: Only update state and validate when the PIN is complete.
+                // This reduces the number of UI recompositions and background validation tasks.
+                if (event.quickPin.length == viewState.value.quickPinSize) {
+                    validateForm(event.quickPin)
+                } else {
+                    // Update the pin in state without full validation loop for every character
+                    // This keeps the UI responsive during typing.
+                    setState {
+                        copy(
+                            pin = event.quickPin,
+                            isButtonEnabled = false,
+                            quickPinError = null,
+                            resetPin = false,
+                        )
+                    }
+                }
             }
 
             is Event.NextButtonPressed -> {
