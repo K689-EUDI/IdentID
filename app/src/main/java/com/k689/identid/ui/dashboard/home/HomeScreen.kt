@@ -263,7 +263,7 @@ fun HomeScreen(
                     Column(modifier = Modifier.fillMaxSize()) {
                         TopBar(
                             onMenuClick = { coroutineScope.launch { drawerState.open() } },
-                            onDashboardEventSent = onDashboardEventSent,
+                            // onDashboardEventSent = onDashboardEventSent,
                         )
                         Content(
                             state = state,
@@ -880,7 +880,7 @@ private fun HomeScreenContentPreview() {
                 },
             ) { scaffoldPadding ->
                 Column(modifier = Modifier.fillMaxSize()) {
-                    TopBar(onMenuClick = {}, onDashboardEventSent = {})
+                    TopBar(onMenuClick = {})
                     Content(
                         state =
                             State(

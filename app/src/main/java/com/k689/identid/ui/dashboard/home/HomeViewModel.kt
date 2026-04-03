@@ -316,7 +316,7 @@ class HomeViewModel(
 
     private fun onDrawerMenuItemClicked(item: DrawerMenuItem) {
         when (item) {
-            is DrawerMenuItem.ChangePin -> {
+            DrawerMenuItem.ChangePin -> {
                 setEffect {
                     Effect.Navigation.SwitchScreen(
                         screenRoute =
