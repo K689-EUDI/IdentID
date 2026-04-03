@@ -45,7 +45,6 @@ import com.k689.identid.ui.component.wrap.WrapImage
 @Composable
 fun HomeDrawer(
     drawerState: DrawerState,
-    currentRoute: String? = null,
     menuItems: List<DrawerMenuItem>,
     onMenuItemClick: (DrawerMenuItem) -> Unit,
     content: @Composable () -> Unit,
