@@ -64,15 +64,17 @@ class PresentationSuccessInteractorImpl(
     private val walletCoreDocumentsController: WalletCoreDocumentsController,
     private val resourceProvider: ResourceProvider,
     private val uuidProvider: UuidProvider,
-    walletCorePresentationController: WalletCorePresentationController? = null,
+    initialWalletCorePresentationController: WalletCorePresentationController? = null,
 ) : PresentationSuccessInteractor,
-    ScopedPresentationInteractorDelegate(walletCorePresentationController) {
+    ScopedPresentationInteractorDelegate(initialWalletCorePresentationController) {
     private val genericErrorMsg
         get() = resourceProvider.genericErrorMessage()
 
-    override val initiatorRoute: String = walletCorePresentationController.initiatorRoute
+    override val initiatorRoute: String
+        get() = walletCorePresentationController.initiatorRoute
 
-    override val redirectUri: URI? = walletCorePresentationController.redirectUri
+    override val redirectUri: URI?
+        get() = walletCorePresentationController.redirectUri
 
     override fun getUiItems(): Flow<PresentationSuccessInteractorGetUiItemsPartialState> =
         flow {

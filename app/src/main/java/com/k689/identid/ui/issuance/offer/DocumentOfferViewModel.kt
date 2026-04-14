@@ -24,7 +24,7 @@ import com.k689.identid.config.ConfigNavigation
 import com.k689.identid.config.IssuanceSuccessUiConfig
 import com.k689.identid.config.NavigationType
 import com.k689.identid.config.OfferCodeUiConfig
-import com.k689.identid.config.OfferUIConfig
+import com.k689.identid.config.OfferUiConfig
 import com.k689.identid.config.PresentationMode
 import com.k689.identid.config.RequestUriConfig
 import com.k689.identid.di.common.getOrCreateCredentialOfferScope
@@ -133,8 +133,8 @@ class DocumentOfferViewModel(
         val deserializedOfferUiConfig =
             uiSerializer.fromBase64(
                 offerSerializedConfig,
-                OfferUIConfig::class.java,
-                OfferUIConfig.Parser,
+                OfferUiConfig::class.java,
+                OfferUiConfig.Parser,
             ) ?: throw RuntimeException("OfferUiConfig:: is Missing or invalid")
 
         return State(
