@@ -493,7 +493,10 @@ private fun ToolBarActionsWithFourActionsPreview() {
             )
 
         Row {
-            ToolBarActions(toolBarActions)
+            ToolBarActions(
+                toolBarActions = toolBarActions,
+                overflowThreshold = MAX_TOOLBAR_ACTIONS,
+            )
         }
     }
 }
