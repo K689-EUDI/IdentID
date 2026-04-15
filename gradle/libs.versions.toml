@@ -4,6 +4,7 @@ androidDesugarJdkLibs = "2.1.5"
 androidGradlePlugin = "9.1.1"
 androidxActivity = "1.13.0"
 androidxAppCompat = "1.7.1"
+androidxBenchmark = "1.5.0-alpha05"
 androidxComposeBom = "2026.03.00"
 androidxCore = "1.18.0"
 androidxCoreSplashscreen = "1.2.0"
@@ -11,6 +12,7 @@ androidxEspresso = "3.7.0"
 androidxLifecycle = "2.10.0"
 androidxNavigation = "2.9.7"
 androidxProfileinstaller = "1.4.1"
+androidxTestUiAutomator = "2.4.0-beta02"
 androidxWork = "2.11.1"
 androidxBiometric = "1.2.0-alpha05"
 androidxAppAuth = "1.0.0"
@@ -71,7 +73,9 @@ androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-junit" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "androidxBenchmark" }
 androidx-work-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "androidxWork" }
+androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "androidxTestUiAutomator" }
 coil-kt = { group = "io.coil-kt.coil3", name = "coil", version.ref = "coil" }
 coil-kt-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-kt-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }
@@ -112,6 +116,8 @@ androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", 
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }
+androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "androidxBenchmark" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

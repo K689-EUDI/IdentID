@@ -29,6 +29,14 @@ Build and run (from project root):
 ./gradlew installDebug
 ```
 
+Generate Baseline Profiles:
+
+```bash
+./gradlew :app:generateBaselineProfile
+```
+
+This uses the `baselineprofile` module to capture app startup and a core dashboard navigation journey on a connected device or emulator.
+
 Open the project in Android Studio and run the `app` module on a device/emulator.
 
 Configuration

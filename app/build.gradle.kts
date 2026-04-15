@@ -2,6 +2,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.androidx.baselineprofile)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
@@ -157,11 +158,6 @@ android {
             )
         )
     }
-
-    // KSP generated sources for Koin
-    sourceSets.all {
-        kotlin.directories.add("build/generated/ksp/$name/kotlin")
-    }
 }
 
 room {
@@ -174,6 +170,8 @@ secrets {
 }
 
 dependencies {
+    baselineProfile(project(":baselineprofile"))
+
     // Desugaring
     coreLibraryDesugaring(libs.android.desugarJdkLibs)
 
