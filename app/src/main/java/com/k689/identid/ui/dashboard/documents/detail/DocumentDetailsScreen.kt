@@ -312,14 +312,6 @@ private fun Content(
                         issuerName = state.issuerName,
                         issuerLogo = state.issuerLogo,
                     )
-
-                    Spacer(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .height(800.dp)
-                                .background(MaterialTheme.colorScheme.surfaceContainerLow),
-                    )
                 }
             }
         }
