@@ -26,11 +26,10 @@ Build and run (from project root):
 
 ```bash
 ./gradlew assembleDebug
-./gradlew assembleProfile
 ./gradlew installDebug
 ```
 
-`debug` stays debuggable and does not consume baseline profiles. Use the `profile` build for a debug-like local APK that is non-debuggable and packages the shared baseline profile.
+`release` consumes the shared baseline profile. `debug` stays debuggable and is intended for normal local development.
 
 Generate Baseline Profiles:
 
@@ -42,7 +41,7 @@ This uses the `baselineprofile` module to capture app startup and a core dashboa
 
 The generated profile is merged into the shared app source set at `app/src/main/generated/baselineProfiles/baseline-prof.txt`.
 
-All non-debuggable app variants consume that shared profile, including `release` and the debug-like `profile` build type.
+The `release` variant consumes that shared profile.
 
 Open the project in Android Studio and run the `app` module on a device/emulator.
 

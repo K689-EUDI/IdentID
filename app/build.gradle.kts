@@ -115,16 +115,6 @@ android {
             isDebuggable = true
             isMinifyEnabled = false
         }
-        create("profile") {
-            initWith(getByName("debug"))
-            isDebuggable = false
-            applicationIdSuffix = ".profile"
-            versionNameSuffix = "-profile"
-            matchingFallbacks += listOf("debug")
-            if (keystoreFile.exists()) {
-                signingConfig = signingConfigs.getByName("release")
-            }
-        }
         release {
             isDebuggable = false
             isMinifyEnabled = true
