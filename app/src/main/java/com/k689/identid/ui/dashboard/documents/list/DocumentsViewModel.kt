@@ -25,11 +25,9 @@ import com.k689.identid.config.QrScanUiConfig
 import com.k689.identid.interactor.dashboard.DocumentInteractorDeleteDocumentPartialState
 import com.k689.identid.interactor.dashboard.DocumentInteractorFilterPartialState
 import com.k689.identid.interactor.dashboard.DocumentInteractorGetDocumentsPartialState
-import com.k689.identid.interactor.dashboard.DocumentInteractorRetryIssuingDeferredDocumentsPartialState
 import com.k689.identid.interactor.dashboard.DocumentsInteractor
 import com.k689.identid.model.core.DeferredDocumentDataDomain
 import com.k689.identid.model.core.DocumentCategory
-import com.k689.identid.model.core.FormatType
 import com.k689.identid.model.validator.FilterableList
 import com.k689.identid.model.validator.SortOrder
 import com.k689.identid.navigation.CommonScreens
@@ -58,7 +56,6 @@ import com.k689.identid.ui.mvi.ViewState
 import com.k689.identid.ui.serializer.UiSerializer
 import eu.europa.ec.eudi.wallet.document.DocumentId
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
 
@@ -82,13 +79,11 @@ data class State(
 sealed class Event : ViewEvent {
     data object Init : Event()
 
-    data object GetDocuments : Event()
+    data class GetDocuments(
+        val deferredFailedDocIds: List<DocumentId> = emptyList(),
+    ) : Event()
 
     data object OnPause : Event()
-
-    data class TryIssuingDeferredDocuments(
-        val deferredDocs: Map<DocumentId, FormatType>,
-    ) : Event()
 
     data object Pop : Event()
 
@@ -163,10 +158,6 @@ sealed class Effect : ViewSideEffect {
         ) : Navigation()
     }
 
-    data class DocumentsFetched(
-        val deferredDocs: Map<DocumentId, FormatType>,
-    ) : Effect()
-
     data object ShowBottomSheet : Effect()
 
     data object CloseBottomSheet : Effect()
@@ -197,7 +188,6 @@ class DocumentsViewModel(
     private val resourceProvider: ResourceProvider,
     private val uiSerializer: UiSerializer,
 ) : MviViewModel<Event, State, Effect>() {
-    private var retryDeferredDocsJob: Job? = null
     private var fetchDocumentsJob: Job? = null
 
     override fun setInitialState(): State =
@@ -221,18 +211,13 @@ class DocumentsViewModel(
             is Event.GetDocuments -> {
                 getDocuments(
                     event = event,
-                    deferredFailedDocIds = viewState.value.deferredFailedDocIds,
+                    deferredFailedDocIds = event.deferredFailedDocIds.ifEmpty { viewState.value.deferredFailedDocIds },
                 )
             }
 
             is Event.OnPause -> {
-                stopDeferredIssuing()
                 stopFetchDocuments()
                 setState { copy(isFromOnPause = true) }
-            }
-
-            is Event.TryIssuingDeferredDocuments -> {
-                tryIssuingDeferredDocuments(event, event.deferredDocs)
             }
 
             is Event.Pop -> {
@@ -248,7 +233,6 @@ class DocumentsViewModel(
             }
 
             is Event.FiltersPressed -> {
-                stopDeferredIssuing()
                 showBottomSheet(sheetContent = Filters(filters = emptyList()))
             }
 
@@ -379,18 +363,6 @@ class DocumentsViewModel(
                             }
 
                             is DocumentInteractorGetDocumentsPartialState.Success -> {
-                                val deferredDocs: MutableMap<DocumentId, FormatType> = mutableMapOf()
-                                response.allDocuments.items
-                                    .filter { document ->
-                                        with(document.payload as DocumentUi) {
-                                            documentIssuanceState == DocumentIssuanceStateUi.Pending
-                                        }
-                                    }.forEach { documentItem ->
-                                        with(documentItem.payload as DocumentUi) {
-                                            deferredDocs[uiData.itemId] =
-                                                documentIdentifier.formatType
-                                        }
-                                    }
                                 val documentsWithFailed =
                                     response.allDocuments
                                         .generateFailedDeferredDocs(deferredFailedDocIds)
@@ -416,7 +388,6 @@ class DocumentsViewModel(
                                         isFromOnPause = false,
                                     )
                                 }
-                                setEffect { Effect.DocumentsFetched(deferredDocs) }
                             }
                         }
                     }
@@ -449,89 +420,6 @@ class DocumentsViewModel(
                     filterableItem.copy(payload = failedUiItem)
                 },
         )
-
-    private fun tryIssuingDeferredDocuments(
-        event: Event,
-        deferredDocs: Map<DocumentId, FormatType>,
-    ) {
-        setState {
-            copy(
-                isLoading = false,
-                error = null,
-            )
-        }
-
-        stopDeferredIssuing()
-        retryDeferredDocsJob =
-            viewModelScope.launch {
-                if (deferredDocs.isEmpty()) {
-                    return@launch
-                }
-
-                delay(5000L)
-
-                interactor.tryIssuingDeferredDocumentsFlow(deferredDocs).collect { response ->
-                    when (response) {
-                        is DocumentInteractorRetryIssuingDeferredDocumentsPartialState.Failure -> {
-                            setState {
-                                copy(
-                                    isLoading = false,
-                                    error =
-                                        ContentErrorConfig(
-                                            onRetry = { setEvent(event) },
-                                            errorSubTitle = response.errorMessage,
-                                            onCancel = {
-                                                setState { copy(error = null) }
-                                            },
-                                        ),
-                                )
-                            }
-                        }
-
-                        is DocumentInteractorRetryIssuingDeferredDocumentsPartialState.Result -> {
-                            val successDocs = response.successfullyIssuedDeferredDocuments
-                            if (successDocs.isNotEmpty() &&
-                                (
-                                    !viewState.value.isBottomSheetOpen ||
-                                        (
-                                            viewState.value.isBottomSheetOpen &&
-                                                viewState.value.sheetContent !is DocumentsBottomSheetContent.DeferredDocumentsReady
-                                        )
-                                )
-                            ) {
-                                showBottomSheet(
-                                    sheetContent =
-                                        DocumentsBottomSheetContent.DeferredDocumentsReady(
-                                            successfullyIssuedDeferredDocuments = successDocs,
-                                            options =
-                                                getBottomSheetOptions(
-                                                    deferredDocumentsData = successDocs,
-                                                ),
-                                        ),
-                                )
-                            }
-
-                            getDocuments(
-                                event = event,
-                                deferredFailedDocIds = response.failedIssuedDeferredDocuments,
-                            )
-                        }
-                    }
-                }
-            }
-    }
-
-    private fun getBottomSheetOptions(deferredDocumentsData: List<DeferredDocumentDataDomain>): List<ModalOptionUi<Event>> =
-        deferredDocumentsData.map {
-            ModalOptionUi(
-                title = it.docName,
-                trailingIcon = AppIcons.KeyboardArrowRight,
-                event =
-                    Event.BottomSheet.DeferredDocument.OptionListItemForSuccessfullyIssuingDeferredDocumentSelected(
-                        documentId = it.documentId,
-                    ),
-            )
-        }
 
     private fun deleteDocument(
         event: Event,
@@ -740,10 +628,6 @@ class DocumentsViewModel(
             }
         setState { copy(shouldRevertFilterChanges = true) }
         interactor.updateSortOrder(sortOrder)
-    }
-
-    private fun stopDeferredIssuing() {
-        retryDeferredDocsJob?.cancel()
     }
 
     private fun stopFetchDocuments() {

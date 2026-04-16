@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,13 +33,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -50,7 +47,6 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MobileFriendly
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
@@ -111,6 +107,8 @@ import com.k689.identid.ui.component.wrap.BottomSheetTextDataUi
 import com.k689.identid.ui.component.wrap.DialogBottomSheet
 import com.k689.identid.ui.component.wrap.WrapIconButton
 import com.k689.identid.ui.component.wrap.WrapModalBottomSheet
+import com.k689.identid.ui.dashboard.documents.component.DocumentIdentityCard
+import com.k689.identid.ui.dashboard.documents.component.toCardIdentificationTag
 import com.k689.identid.ui.dashboard.home.components.DrawerMenuItem
 import com.k689.identid.ui.dashboard.home.components.HomeDrawer
 import com.k689.identid.ui.dashboard.transactions.model.TransactionStatusUi
@@ -465,17 +463,26 @@ private fun Content(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(220.dp),
-            contentPadding = PaddingValues(horizontal = 32.dp, vertical = 8.dp),
+                    .height(246.dp),
+            contentPadding = PaddingValues(horizontal = 32.dp, vertical = 6.dp),
             pageSpacing = 16.dp,
             verticalAlignment = Alignment.CenterVertically,
             beyondViewportPageCount = 1,
         ) { page ->
             if (page < recentDocs.size) {
                 val doc = recentDocs[page]
-                DocumentCard(
-                    document = doc,
-                    onClicked = { onEventSent(Event.DocumentClicked(doc.documentUi.uiData.itemId)) },
+                val documentTitle = (doc.documentUi.uiData.mainContentData as? ListItemMainContentDataUi.Text)?.text ?: ""
+                val categoryLabel = stringResource(doc.documentUi.documentCategory.stringResId)
+
+                DocumentIdentityCard(
+                    title = documentTitle,
+                    identification = "$categoryLabel • ${doc.documentUi.documentIdentifier.toCardIdentificationTag()}",
+                    supportingLines =
+                        listOf(
+                            stringResource(R.string.home_screen_document_usages_left, doc.usagesLeft),
+                            stringResource(R.string.home_screen_document_expires, doc.expiresAt),
+                        ),
+                    onClick = { onEventSent(Event.DocumentClicked(doc.documentUi.uiData.itemId)) },
                     modifier =
                         Modifier
                             .graphicsLayer {
@@ -565,84 +572,6 @@ private fun Content(
                     }
                 }
             }.collect()
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DocumentCard(
-    document: DashboardDocument,
-    onClicked: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        onClick = onClicked,
-        modifier =
-            modifier
-                .fillMaxSize(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-    ) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = SPACING_LARGE.dp, vertical = SPACING_MEDIUM.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // Placeholder area for the future user avatar/icon
-            Box(
-                modifier =
-                    Modifier
-                        .size(72.dp) // Adjusted sizing due to taller card space
-                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Avatar Placeholder",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(36.dp),
-                )
-            }
-
-            Spacer(modifier = Modifier.width(SPACING_LARGE.dp))
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Center,
-            ) {
-                val docName = (document.documentUi.uiData.mainContentData as? ListItemMainContentDataUi.Text)?.text ?: ""
-                Text(
-                    text = docName,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = stringResource(R.string.home_screen_document_usages_left, document.usagesLeft),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = stringResource(R.string.home_screen_document_expires, document.expiresAt),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
     }
 }
 

@@ -24,22 +24,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
@@ -47,20 +45,25 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.k689.identid.R
-import com.k689.identid.extension.ui.paddingFrom
 import com.k689.identid.model.core.DocumentIdentifier
 import com.k689.identid.theme.values.success
 import com.k689.identid.theme.values.warning
@@ -73,7 +76,6 @@ import com.k689.identid.ui.component.ListItemMainContentDataUi
 import com.k689.identid.ui.component.SectionTitle
 import com.k689.identid.ui.component.content.BroadcastAction
 import com.k689.identid.ui.component.content.ContentScreen
-import com.k689.identid.ui.component.content.ContentTitle
 import com.k689.identid.ui.component.content.ScreenNavigateAction
 import com.k689.identid.ui.component.content.ToolbarActionUi
 import com.k689.identid.ui.component.content.ToolbarConfig
@@ -96,6 +98,8 @@ import com.k689.identid.ui.component.wrap.WrapCard
 import com.k689.identid.ui.component.wrap.WrapListItems
 import com.k689.identid.ui.component.wrap.WrapModalBottomSheet
 import com.k689.identid.ui.component.wrap.WrapText
+import com.k689.identid.ui.dashboard.documents.component.DocumentIdentityCard
+import com.k689.identid.ui.dashboard.documents.component.toCardIdentificationTag
 import com.k689.identid.ui.dashboard.documents.detail.model.DocumentDetailsUi
 import com.k689.identid.ui.dashboard.documents.detail.model.DocumentIssuanceStateUi
 import com.k689.identid.ui.dashboard.documents.model.DocumentCredentialsInfoUi
@@ -105,10 +109,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.net.URI
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,13 +121,11 @@ fun DocumentDetailsScreen(
     viewModel: DocumentDetailsViewModel,
 ) {
     val state: State by viewModel.viewState.collectAsStateWithLifecycle()
+    val onEventSend = viewModel::setEvent
 
     val isBottomSheetOpen = state.isBottomSheetOpen
     val scope = rememberCoroutineScope()
-    val bottomSheetState =
-        rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-        )
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val toolbarConfig =
         ToolbarConfig(
@@ -132,13 +134,13 @@ fun DocumentDetailsScreen(
                     listOf(
                         ToolbarActionUi(
                             icon = if (state.isDocumentBookmarked) AppIcons.BookmarkFilled else AppIcons.Bookmark,
-                            onClick = { viewModel.setEvent(Event.BookmarkPressed) },
+                            onClick = { onEventSend(Event.BookmarkPressed) },
                             enabled = !state.isLoading,
                             throttleClicks = true,
                         ),
                         ToolbarActionUi(
                             icon = if (state.hideSensitiveContent) AppIcons.VisibilityOff else AppIcons.Visibility,
-                            onClick = { viewModel.setEvent(Event.ChangeContentVisibility) },
+                            onClick = { onEventSend(Event.ChangeContentVisibility) },
                             enabled = !state.isLoading,
                             throttleClicks = false,
                         ),
@@ -152,32 +154,22 @@ fun DocumentDetailsScreen(
         isLoading = state.isLoading,
         contentErrorConfig = state.error,
         navigatableAction = ScreenNavigateAction.BACKABLE,
-        onBack = { viewModel.setEvent(Event.Pop) },
+        onBack = { onEventSend(Event.Pop) },
         toolBarConfig = toolbarConfig,
         broadcastAction =
             BroadcastAction(
-                intentFilters =
-                    listOf(
-                        CoreActions.REVOCATION_WORK_REFRESH_DETAILS_ACTION,
-                    ),
+                intentFilters = listOf(CoreActions.REVOCATION_WORK_REFRESH_DETAILS_ACTION),
                 callback = {
-                    val ids =
-                        it
-                            ?.getStringArrayListExtra(CoreActions.REVOCATION_IDS_DETAILS_EXTRA)
-                            ?.toList()
-                            ?: emptyList()
-
-                    viewModel.setEvent(Event.OnRevocationStatusChanged(ids))
+                    val ids = it?.getStringArrayListExtra(CoreActions.REVOCATION_IDS_DETAILS_EXTRA)?.toList() ?: emptyList()
+                    onEventSend(Event.OnRevocationStatusChanged(ids))
                 },
             ),
     ) { paddingValues ->
         Content(
             state = state,
             effectFlow = viewModel.effect,
-            onEventSend = { viewModel.setEvent(it) },
-            onNavigationRequested = { navigationEffect ->
-                handleNavigationEffect(navigationEffect, navController)
-            },
+            onEventSend = onEventSend,
+            onNavigationRequested = { navigationEffect -> handleNavigationEffect(navigationEffect, navController) },
             paddingValues = paddingValues,
             coroutineScope = scope,
             modalBottomSheetState = bottomSheetState,
@@ -186,19 +178,13 @@ fun DocumentDetailsScreen(
         if (isBottomSheetOpen) {
             WrapModalBottomSheet(
                 onDismissRequest = {
-                    viewModel.setEvent(
-                        Event.BottomSheet.UpdateBottomSheetState(
-                            isOpen = false,
-                        ),
-                    )
+                    onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = false))
                 },
                 sheetState = bottomSheetState,
             ) {
                 SheetContent(
                     sheetContent = state.sheetContent,
-                    onEventSent = {
-                        viewModel.setEvent(it)
-                    },
+                    onEventSent = onEventSend,
                 )
             }
         }
@@ -208,7 +194,7 @@ fun DocumentDetailsScreen(
         lifecycleOwner = LocalLifecycleOwner.current,
         lifecycleEvent = Lifecycle.Event.ON_RESUME,
     ) {
-        viewModel.setEvent(Event.Init)
+        onEventSend(Event.Init)
     }
 }
 
@@ -244,54 +230,53 @@ private fun Content(
     coroutineScope: CoroutineScope,
     modalBottomSheetState: SheetState,
 ) {
+    val layoutDirection = LocalLayoutDirection.current
+    var topContentHeight by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+
     state.documentDetailsUi?.let { safeDocumentDetailsUi ->
-        Column(
+        Box(
             modifier =
                 Modifier
-                    .paddingFrom(paddingValues, bottom = false),
+                    .fillMaxSize()
+                    .padding(top = paddingValues.calculateTopPadding()),
         ) {
-            AnimatedVisibility(
-                visible = state.isRevoked,
-            ) {
-                WrapCard(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth(),
-                    shape = MaterialTheme.shapes.small,
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                        ),
-                ) {
-                    Column(
-                        modifier =
-                            Modifier
-                                .padding(SPACING_MEDIUM.dp),
-                    ) {
-                        WrapText(
-                            text =
-                                stringResource(
-                                    R.string.document_details_revoked_document_message,
-                                ),
-                            textConfig =
-                                TextConfig(
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    maxLines = Int.MAX_VALUE,
-                                ),
-                        )
-                    }
-                }
-
-                VSpacer.Large()
-            }
-
+            // card
             Column(
                 modifier =
                     Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
+                        .fillMaxWidth()
+                        .onGloballyPositioned { coordinates ->
+                            topContentHeight = coordinates.size.height
+                        }.padding(
+                            start = paddingValues.calculateStartPadding(layoutDirection),
+                            end = paddingValues.calculateEndPadding(layoutDirection),
+                        ),
             ) {
+                AnimatedVisibility(visible = state.isRevoked) {
+                    WrapCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.small,
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            ),
+                    ) {
+                        Column(modifier = Modifier.padding(SPACING_MEDIUM.dp)) {
+                            WrapText(
+                                text = stringResource(R.string.document_details_revoked_document_message),
+                                textConfig =
+                                    TextConfig(
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        maxLines = Int.MAX_VALUE,
+                                    ),
+                            )
+                        }
+                    }
+                    VSpacer.Large()
+                }
+
                 state.documentCredentialsInfoUi?.let { safeDocumentCredentialsInfo ->
                     DocumentCredentialsSection(
                         modifier =
@@ -304,65 +289,132 @@ private fun Content(
                     )
                     VSpacer.ExtraLarge()
                 }
+            }
 
-                DocumentDetails(
-                    modifier = Modifier.fillMaxWidth(),
-                    onEventSend = onEventSend,
-                    sectionTitle = state.documentDetailsSectionTitle,
-                    documentDetailsUi = safeDocumentDetailsUi,
-                    hideSensitiveContent = state.hideSensitiveContent,
-                )
+            // sheet
+            if (topContentHeight > 0) {
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                ) {
+                    val topOffset = with(density) { topContentHeight.toDp() }
+                    Spacer(modifier = Modifier.height(topOffset))
 
-                if (state.issuerName != null || state.issuerLogo != null) {
-                    VSpacer.ExtraLarge()
-
-                    IssuerDetails(
+                    FauxModalDetailsPanel(
                         modifier = Modifier.fillMaxWidth(),
-                        sectionTitle = state.documentIssuerSectionTitle,
+                        onEventSend = onEventSend,
+                        sectionTitle = stringResource(R.string.document_details_main_section_text),
+                        documentDetailsUi = safeDocumentDetailsUi,
+                        hideSensitiveContent = state.hideSensitiveContent,
+                        issuerSectionTitle = stringResource(R.string.document_details_issuer_section_text),
                         issuerName = state.issuerName,
                         issuerLogo = state.issuerLogo,
                     )
                 }
-
-                ButtonsSection(
-                    onEventSend = onEventSend,
-                )
             }
         }
     }
 
     LaunchedEffect(Unit) {
-        effectFlow
-            .onEach { effect ->
-                when (effect) {
-                    is Effect.Navigation -> {
-                        onNavigationRequested(effect)
-                    }
-
-                    is Effect.CloseBottomSheet -> {
-                        coroutineScope
-                            .launch {
-                                modalBottomSheetState.hide()
-                            }.invokeOnCompletion {
-                                if (!modalBottomSheetState.isVisible) {
-                                    onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = false))
-                                }
-                            }
-                    }
-
-                    is Effect.ShowBottomSheet -> {
-                        onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = true))
-                    }
-
-                    is Effect.BookmarkStored -> {
-                        onEventSend(Event.OnBookmarkStored)
-                    }
-
-                    is Effect.BookmarkRemoved -> {
-                        onEventSend(Event.OnBookmarkRemoved)
-                    }
+        effectFlow.collect { effect ->
+            when (effect) {
+                is Effect.Navigation -> {
+                    onNavigationRequested(effect)
                 }
-            }.collect()
+
+                is Effect.CloseBottomSheet -> {
+                    coroutineScope
+                        .launch { modalBottomSheetState.hide() }
+                        .invokeOnCompletion {
+                            if (!modalBottomSheetState.isVisible) {
+                                onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = false))
+                            }
+                        }
+                }
+
+                is Effect.ShowBottomSheet -> {
+                    onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = true))
+                }
+
+                is Effect.BookmarkStored -> {
+                    onEventSend(Event.OnBookmarkStored)
+                }
+
+                is Effect.BookmarkRemoved -> {
+                    onEventSend(Event.OnBookmarkRemoved)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FauxModalDetailsPanel(
+    modifier: Modifier = Modifier,
+    onEventSend: (Event) -> Unit,
+    sectionTitle: String,
+    documentDetailsUi: DocumentDetailsUi,
+    hideSensitiveContent: Boolean,
+    issuerSectionTitle: String,
+    issuerName: String?,
+    issuerLogo: URI?,
+) {
+    WrapCard(
+        modifier = modifier,
+        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    ) {
+        Column(
+            modifier =
+                Modifier
+                    .padding(
+                        start = SPACING_LARGE.dp,
+                        end = SPACING_LARGE.dp,
+                        top = SPACING_MEDIUM.dp,
+                        bottom = SPACING_SMALL.dp,
+                    ).navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(SPACING_SMALL.dp),
+        ) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    modifier =
+                        Modifier
+                            .width(42.dp)
+                            .height(4.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                shape = RoundedCornerShape(50),
+                            ),
+                )
+            }
+
+            DocumentDetails(
+                modifier = Modifier.fillMaxWidth(),
+                onEventSend = onEventSend,
+                sectionTitle = sectionTitle,
+                documentDetailsUi = documentDetailsUi,
+                hideSensitiveContent = hideSensitiveContent,
+            )
+
+            if (issuerName != null || issuerLogo != null) {
+                VSpacer.Medium()
+                IssuerDetails(
+                    modifier = Modifier.fillMaxWidth(),
+                    sectionTitle = issuerSectionTitle,
+                    issuerName = issuerName,
+                    issuerLogo = issuerLogo,
+                )
+            }
+
+            ButtonsSection(
+                onEventSend = onEventSend,
+            )
+        }
     }
 }
 
@@ -435,8 +487,24 @@ private fun IssuerDetails(
         verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM.dp),
     ) {
         SectionTitle(
-            modifier = Modifier.fillMaxWidth(),
-            text = sectionTitle,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = SPACING_SMALL.dp,
+                        end = SPACING_SMALL.dp,
+                        top = SPACING_LARGE.dp,
+                        bottom = SPACING_SMALL.dp,
+                    ),
+            text = sectionTitle.toSentenceCaseHeading(),
+            textConfig =
+                TextConfig(
+                    style =
+                        MaterialTheme.typography.headlineSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold,
+                        ),
+                ),
         )
         IssuerDetailsCard(
             modifier = Modifier.fillMaxWidth(),
@@ -460,85 +528,59 @@ private fun DocumentCredentialsSection(
     info: DocumentCredentialsInfoUi,
 ) {
     val expandedInfo = info.expandedInfo
-    WrapCard(
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = SPACING_LARGE.dp, vertical = SPACING_MEDIUM.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(72.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Avatar Placeholder",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(36.dp),
-                )
+    val credentialsInfo = "${info.availableCredentials} / ${info.totalCredentials}"
+    val supportingLines =
+        buildList {
+            add(stringResource(R.string.home_screen_document_usages_left, credentialsInfo))
+            if (state.expiresAt.isNotBlank() && state.expiresAt != "-") {
+                add(stringResource(R.string.home_screen_document_expires, state.expiresAt))
             }
+        }
 
-            Spacer(modifier = Modifier.width(SPACING_LARGE.dp))
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(SPACING_SMALL.dp),
+    ) {
+        DocumentIdentityCard(
+            title = state.title.orEmpty(),
+            identification = state.documentDetailsUi?.documentIdentifier?.toCardIdentificationTag() ?: stringResource(R.string.generic_dash),
+            supportingLines = supportingLines,
+            status = state.documentDetailsUi?.documentIssuanceStateUi?.toStatusLabel(),
+            onClick = null,
+        )
 
-            Column(
+        expandedInfo?.updateNowButtonText?.let { safeUpdateNowButtonText ->
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.Start,
             ) {
-                Text(
-                    text = state.title ?: "",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = stringResource(R.string.home_screen_document_usages_left, info.availableCredentials.toString() + " / " + info.totalCredentials.toString()),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                if (state.expiresAt.isNotBlank() && state.expiresAt != "-") {
-                    Spacer(modifier = Modifier.height(4.dp))
+                WrapButton(
+                    modifier = Modifier.wrapContentWidth(),
+                    buttonConfig =
+                        ButtonConfig(
+                            type = ButtonType.PRIMARY,
+                            onClick = onUpdateClicked,
+                        ),
+                ) {
                     Text(
-                        text = stringResource(R.string.home_screen_document_expires, state.expiresAt),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        text = safeUpdateNowButtonText,
+                        style = MaterialTheme.typography.labelLarge,
                     )
-                }
-
-                expandedInfo?.updateNowButtonText?.let { safeUpdateNowButtonText ->
-                    Spacer(modifier = Modifier.height(8.dp))
-                    WrapButton(
-                        modifier = Modifier.wrapContentWidth(),
-                        buttonConfig =
-                            ButtonConfig(
-                                type = ButtonType.PRIMARY,
-                                onClick = onUpdateClicked,
-                            ),
-                    ) {
-                        Text(
-                            text = safeUpdateNowButtonText,
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                    }
                 }
             }
         }
     }
 }
+
+@Composable
+private fun DocumentIssuanceStateUi.toStatusLabel(): String? =
+    when (this) {
+        DocumentIssuanceStateUi.Issued -> null
+        DocumentIssuanceStateUi.Pending -> stringResource(R.string.dashboard_document_deferred_pending)
+        DocumentIssuanceStateUi.Failed -> stringResource(R.string.dashboard_document_deferred_failed)
+        DocumentIssuanceStateUi.Expired -> stringResource(R.string.dashboard_document_has_expired)
+        DocumentIssuanceStateUi.Revoked -> stringResource(R.string.dashboard_document_revoked)
+    }
 
 @Composable
 private fun DocumentDetails(
@@ -553,8 +595,22 @@ private fun DocumentDetails(
         verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM.dp),
     ) {
         SectionTitle(
-            modifier = Modifier.fillMaxWidth(),
-            text = sectionTitle,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        top = SPACING_LARGE.dp,
+                        bottom = SPACING_SMALL.dp,
+                    ),
+            text = sectionTitle.toSentenceCaseHeading(),
+            textConfig =
+                TextConfig(
+                    style =
+                        MaterialTheme.typography.headlineSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold,
+                        ),
+                ),
         )
 
         WrapListItems(
@@ -567,6 +623,23 @@ private fun DocumentDetails(
             onItemClick = null,
             throttleClicks = false,
         )
+    }
+}
+
+private fun String.toSentenceCaseHeading(): String {
+    val locale = Locale.getDefault()
+    return if (this == this.uppercase(locale)) {
+        this
+            .lowercase(locale)
+            .replaceFirstChar { char ->
+                if (char.isLowerCase()) {
+                    char.titlecase(locale)
+                } else {
+                    char.toString()
+                }
+            }
+    } else {
+        this
     }
 }
 
