@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,13 +45,19 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -118,10 +125,7 @@ fun DocumentDetailsScreen(
 
     val isBottomSheetOpen = state.isBottomSheetOpen
     val scope = rememberCoroutineScope()
-    val bottomSheetState =
-        rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-        )
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val toolbarConfig =
         ToolbarConfig(
@@ -130,13 +134,13 @@ fun DocumentDetailsScreen(
                     listOf(
                         ToolbarActionUi(
                             icon = if (state.isDocumentBookmarked) AppIcons.BookmarkFilled else AppIcons.Bookmark,
-                                                        onClick = { onEventSend(Event.BookmarkPressed) },
+                            onClick = { onEventSend(Event.BookmarkPressed) },
                             enabled = !state.isLoading,
                             throttleClicks = true,
                         ),
                         ToolbarActionUi(
                             icon = if (state.hideSensitiveContent) AppIcons.VisibilityOff else AppIcons.Visibility,
-                                                        onClick = { onEventSend(Event.ChangeContentVisibility) },
+                            onClick = { onEventSend(Event.ChangeContentVisibility) },
                             enabled = !state.isLoading,
                             throttleClicks = false,
                         ),
@@ -154,17 +158,9 @@ fun DocumentDetailsScreen(
         toolBarConfig = toolbarConfig,
         broadcastAction =
             BroadcastAction(
-                intentFilters =
-                    listOf(
-                        CoreActions.REVOCATION_WORK_REFRESH_DETAILS_ACTION,
-                    ),
+                intentFilters = listOf(CoreActions.REVOCATION_WORK_REFRESH_DETAILS_ACTION),
                 callback = {
-                    val ids =
-                        it
-                            ?.getStringArrayListExtra(CoreActions.REVOCATION_IDS_DETAILS_EXTRA)
-                            ?.toList()
-                            ?: emptyList()
-
+                    val ids = it?.getStringArrayListExtra(CoreActions.REVOCATION_IDS_DETAILS_EXTRA)?.toList() ?: emptyList()
                     onEventSend(Event.OnRevocationStatusChanged(ids))
                 },
             ),
@@ -182,11 +178,7 @@ fun DocumentDetailsScreen(
         if (isBottomSheetOpen) {
             WrapModalBottomSheet(
                 onDismissRequest = {
-                    onEventSend(
-                        Event.BottomSheet.UpdateBottomSheetState(
-                            isOpen = false,
-                        ),
-                    )
+                    onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = false))
                 },
                 sheetState = bottomSheetState,
             ) {
@@ -239,27 +231,29 @@ private fun Content(
     modalBottomSheetState: SheetState,
 ) {
     val layoutDirection = LocalLayoutDirection.current
+    var topContentHeight by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
 
     state.documentDetailsUi?.let { safeDocumentDetailsUi ->
-        Column(
+        Box(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(top = paddingValues.calculateTopPadding())
-                    .verticalScroll(rememberScrollState()),
+                    .padding(top = paddingValues.calculateTopPadding()),
         ) {
+            // card
             Column(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(
+                        .onGloballyPositioned { coordinates ->
+                            topContentHeight = coordinates.size.height
+                        }.padding(
                             start = paddingValues.calculateStartPadding(layoutDirection),
                             end = paddingValues.calculateEndPadding(layoutDirection),
                         ),
             ) {
-                AnimatedVisibility(
-                    visible = state.isRevoked,
-                ) {
+                AnimatedVisibility(visible = state.isRevoked) {
                     WrapCard(
                         modifier = Modifier.fillMaxWidth(),
                         shape = MaterialTheme.shapes.small,
@@ -269,9 +263,7 @@ private fun Content(
                                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
                             ),
                     ) {
-                        Column(
-                            modifier = Modifier.padding(SPACING_MEDIUM.dp),
-                        ) {
+                        Column(modifier = Modifier.padding(SPACING_MEDIUM.dp)) {
                             WrapText(
                                 text = stringResource(R.string.document_details_revoked_document_message),
                                 textConfig =
@@ -282,7 +274,6 @@ private fun Content(
                             )
                         }
                     }
-
                     VSpacer.Large()
                 }
 
@@ -300,19 +291,37 @@ private fun Content(
                 }
             }
 
-            FauxModalDetailsPanel(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(top = SPACING_LARGE.dp),
-                onEventSend = onEventSend,
-                sectionTitle = stringResource(R.string.document_details_main_section_text),
-                documentDetailsUi = safeDocumentDetailsUi,
-                hideSensitiveContent = state.hideSensitiveContent,
-                issuerSectionTitle = stringResource(R.string.document_details_issuer_section_text),
-                issuerName = state.issuerName,
-                issuerLogo = state.issuerLogo,
-            )
+            // sheet
+            if (topContentHeight > 0) {
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                ) {
+                    val topOffset = with(density) { topContentHeight.toDp() }
+                    Spacer(modifier = Modifier.height(topOffset))
+
+                    FauxModalDetailsPanel(
+                        modifier = Modifier.fillMaxWidth(),
+                        onEventSend = onEventSend,
+                        sectionTitle = stringResource(R.string.document_details_main_section_text),
+                        documentDetailsUi = safeDocumentDetailsUi,
+                        hideSensitiveContent = state.hideSensitiveContent,
+                        issuerSectionTitle = stringResource(R.string.document_details_issuer_section_text),
+                        issuerName = state.issuerName,
+                        issuerLogo = state.issuerLogo,
+                    )
+
+                    Spacer(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(800.dp)
+                                .background(MaterialTheme.colorScheme.surfaceContainerLow),
+                    )
+                }
+            }
         }
     }
 
@@ -325,9 +334,8 @@ private fun Content(
 
                 is Effect.CloseBottomSheet -> {
                     coroutineScope
-                        .launch {
-                            modalBottomSheetState.hide()
-                        }.invokeOnCompletion {
+                        .launch { modalBottomSheetState.hide() }
+                        .invokeOnCompletion {
                             if (!modalBottomSheetState.isVisible) {
                                 onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = false))
                             }
@@ -370,8 +378,8 @@ private fun FauxModalDetailsPanel(
             modifier =
                 Modifier
                     .padding(
-                        start = SPACING_SMALL.dp,
-                        end = SPACING_SMALL.dp,
+                        start = SPACING_LARGE.dp,
+                        end = SPACING_LARGE.dp,
                         top = SPACING_MEDIUM.dp,
                         bottom = SPACING_SMALL.dp,
                     ).navigationBarsPadding(),
@@ -599,8 +607,6 @@ private fun DocumentDetails(
                 Modifier
                     .fillMaxWidth()
                     .padding(
-                        start = SPACING_SMALL.dp,
-                        end = SPACING_SMALL.dp,
                         top = SPACING_LARGE.dp,
                         bottom = SPACING_SMALL.dp,
                     ),
