@@ -11,6 +11,11 @@ plugins {
     id("kotlin-parcelize")
 }
 
+baselineProfile {
+    mergeIntoMain = true
+    saveInSrc = true
+}
+
 fun getLocalProperty(key: String): String? {
     return try {
         val properties = Properties().apply {
@@ -109,6 +114,16 @@ android {
         debug {
             isDebuggable = true
             isMinifyEnabled = false
+        }
+        create("profile") {
+            initWith(getByName("debug"))
+            isDebuggable = false
+            applicationIdSuffix = ".profile"
+            versionNameSuffix = "-profile"
+            matchingFallbacks += listOf("debug")
+            if (keystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         release {
             isDebuggable = false
