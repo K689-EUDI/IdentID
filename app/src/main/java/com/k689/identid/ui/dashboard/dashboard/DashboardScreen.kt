@@ -17,6 +17,7 @@
 package com.k689.identid.ui.dashboard.dashboard
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
@@ -173,6 +174,13 @@ internal fun DashboardScreen(
         )
     }
 
+    LifecycleEffect(
+        lifecycleOwner = LocalLifecycleOwner.current,
+        lifecycleEvent = Lifecycle.Event.ON_PAUSE,
+    ) {
+        viewModel.setEvent(Event.OnPause)
+    }
+
     LaunchedEffect(Unit) {
         viewModel.effect
             .onEach { effect ->
@@ -212,6 +220,16 @@ internal fun DashboardScreen(
                             restoreState = true
                         }
                     }
+
+                    is Effect.NotifyDeferredIssuanceRefresh -> {
+                        val intent = Intent(CoreActions.DEFERRED_ISSUANCE_REFRESH_ACTION).apply {
+                            putStringArrayListExtra(
+                                CoreActions.DEFERRED_ISSUANCE_FAILED_IDS_EXTRA,
+                                ArrayList(state.deferredFailedDocIds)
+                            )
+                        }
+                        context.sendBroadcast(intent)
+                    }
                 }
             }.collect()
     }
@@ -222,8 +240,7 @@ internal fun DashboardScreen(
                 CoreActions.REVOCATION_WORK_MESSAGE_ACTION,
             ),
     ) { intent ->
-        intent
-            .getParcelableArrayListExtra<RevokedDocumentDataDomain>(
+        intent?.getParcelableArrayListExtra<RevokedDocumentDataDomain>(
                 action = CoreActions.REVOCATION_IDS_EXTRA,
             )?.let {
                 viewModel.setEvent(
@@ -276,7 +293,7 @@ private fun handleNavigationEffect(
 @Composable
 private fun DashboardSheetContent(
     sheetContent: DashboardBottomSheetContent,
-    onEventSent: (even: Event) -> Unit,
+    onEventSent: (event: Event) -> Unit,
 ) {
     when (sheetContent) {
         is DashboardBottomSheetContent.DocumentRevocation -> {
@@ -290,6 +307,24 @@ private fun DashboardSheetContent(
                         message =
                             stringResource(
                                 id = R.string.dashboard_bottom_sheet_revoked_document_dialog_subtitle,
+                            ),
+                    ),
+                options = sheetContent.options,
+                onEventSent = onEventSent,
+            )
+        }
+
+        is DashboardBottomSheetContent.DeferredDocumentsReady -> {
+            BottomSheetWithOptionsList(
+                textData =
+                    BottomSheetTextDataUi(
+                        title =
+                            stringResource(
+                                id = R.string.dashboard_bottom_sheet_deferred_documents_ready_title,
+                            ),
+                        message =
+                            stringResource(
+                                id = R.string.dashboard_bottom_sheet_deferred_documents_ready_subtitle,
                             ),
                     ),
                 options = sheetContent.options,
