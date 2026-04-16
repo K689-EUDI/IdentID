@@ -222,6 +222,9 @@
     <!--endregion-->
     <!-- region Dashboard Side Menu -->
     <string name="dashboard_side_menu_title">Mano ES piniginė</string>
+    <string name="dashboard_side_menu_group_operations">Veiksmai</string>
+    <string name="dashboard_side_menu_group_wallet">Piniginė</string>
+    <string name="dashboard_side_menu_group_settings">Settings</string>
     <string name="dashboard_side_menu_option_change_pin">Keisti PIN kodą</string>
     <string name="dashboard_side_menu_option_change_pin_id">changePinId</string>
     <string name="dashboard_side_menu_option_settings">Nustatymai</string>
@@ -388,6 +391,8 @@
     <string name="transactions_screen_filters_filter_by_transaction_type_presentation">Pateikimas</string>
     <string name="transactions_screen_filters_filter_by_transaction_type_issuance">Išdavimas</string>
     <string name="transactions_screen_filters_filter_by_transaction_type_signing">Pasirašymas</string>
+    <string name="transactions_screen_filters_filter_by_transaction_type_pseudonym_registration">Pseudonimo registracija</string>
+    <string name="transactions_screen_filters_filter_by_transaction_type_pseudonym_authentication">Pseudonimo autentifikacija</string>
     <string name="transactions_screen_filters_date_from">Data nuo</string>
     <string name="transactions_screen_filters_date_to">Data iki</string>
     <string name="transactions_filter_item_status_completed">Atlikta</string>

@@ -16,7 +16,6 @@
 
 package com.k689.identid.ui.dashboard.documents.list
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,7 +46,6 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -58,12 +56,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.k689.identid.R
-import com.k689.identid.extension.ui.finish
 import com.k689.identid.extension.ui.paddingFrom
 import com.k689.identid.model.core.DocumentCategory
 import com.k689.identid.model.core.DocumentIdentifier
-import com.k689.identid.model.dashboard.SearchItemUi
-import com.k689.identid.theme.values.warning
 import com.k689.identid.ui.component.AppIcons
 import com.k689.identid.ui.component.DualSelectorButton
 import com.k689.identid.ui.component.DualSelectorButtonDataUi
@@ -74,6 +69,7 @@ import com.k689.identid.ui.component.ListItemDataUi
 import com.k689.identid.ui.component.ListItemMainContentDataUi
 import com.k689.identid.ui.component.ModalOptionUi
 import com.k689.identid.ui.component.SectionTitle
+import com.k689.identid.ui.component.SystemBroadcastReceiver
 import com.k689.identid.ui.component.content.BroadcastAction
 import com.k689.identid.ui.component.content.ContentScreen
 import com.k689.identid.ui.component.content.ScreenNavigateAction
@@ -90,7 +86,6 @@ import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.utils.VSpacer
 import com.k689.identid.ui.component.wrap.BottomSheetTextDataUi
 import com.k689.identid.ui.component.wrap.BottomSheetWithOptionsList
-import com.k689.identid.ui.component.wrap.BottomSheetWithTwoBigIcons
 import com.k689.identid.ui.component.wrap.ButtonConfig
 import com.k689.identid.ui.component.wrap.ButtonType
 import com.k689.identid.ui.component.wrap.DialogBottomSheet
@@ -100,7 +95,8 @@ import com.k689.identid.ui.component.wrap.WrapExpandableListItem
 import com.k689.identid.ui.component.wrap.WrapIconButton
 import com.k689.identid.ui.component.wrap.WrapListItem
 import com.k689.identid.ui.component.wrap.WrapModalBottomSheet
-import com.k689.identid.ui.dashboard.component.BottomNavigationItem
+import com.k689.identid.ui.dashboard.documents.component.StackedDocumentIdentityCard
+import com.k689.identid.ui.dashboard.documents.component.toCardIdentificationTag
 import com.k689.identid.ui.dashboard.documents.detail.model.DocumentIssuanceStateUi
 import com.k689.identid.ui.dashboard.documents.list.model.DocumentUi
 import com.k689.identid.util.core.CoreActions
@@ -109,7 +105,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -124,7 +119,7 @@ fun DocumentsScreen(
     onDashboardEventSent: (DashboardEvent) -> Unit,
 ) {
     val state: State by viewModel.viewState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+    val onEventSend = viewModel::setEvent
 
     val isBottomSheetOpen = state.isBottomSheetOpen
     val scope = rememberCoroutineScope()
@@ -136,7 +131,7 @@ fun DocumentsScreen(
     ContentScreen(
         isLoading = state.isLoading,
         navigatableAction = ScreenNavigateAction.BACKABLE,
-        onBack = { viewModel.setEvent(Event.Pop) },
+        onBack = { onEventSend(Event.Pop) },
         contentErrorConfig = null,
         toolBarConfig =
             ToolbarConfig(
@@ -149,16 +144,16 @@ fun DocumentsScreen(
                         CoreActions.REVOCATION_WORK_REFRESH_ACTION,
                     ),
                 callback = {
-                    viewModel.setEvent(Event.GetDocuments)
+                    onEventSend(Event.GetDocuments())
                 },
             ),
     ) { paddingValues ->
         Content(
             state = state,
             effectFlow = viewModel.effect,
-            onEventSend = { viewModel.setEvent(it) },
+            onEventSend = onEventSend,
             onNavigationRequested = { navigationEffect ->
-                handleNavigationEffect(navigationEffect, navHostController, context)
+                handleNavigationEffect(navigationEffect, navHostController)
             },
             paddingValues = paddingValues,
             coroutineScope = scope,
@@ -168,7 +163,7 @@ fun DocumentsScreen(
         if (isBottomSheetOpen) {
             WrapModalBottomSheet(
                 onDismissRequest = {
-                    viewModel.setEvent(
+                    onEventSend(
                         Event.BottomSheet.UpdateBottomSheetState(
                             isOpen = false,
                         ),
@@ -179,19 +174,24 @@ fun DocumentsScreen(
                 DocumentsSheetContent(
                     sheetContent = state.sheetContent,
                     state = state,
-                    onEventSent = {
-                        viewModel.setEvent(it)
-                    },
+                    onEventSent = onEventSend,
                 )
             }
         }
+    }
+
+    SystemBroadcastReceiver(
+        intentFilters = listOf(CoreActions.DEFERRED_ISSUANCE_REFRESH_ACTION),
+    ) { intent ->
+        val failedIds = intent?.getStringArrayListExtra(CoreActions.DEFERRED_ISSUANCE_FAILED_IDS_EXTRA)
+            ?: emptyList()
+        onEventSend(Event.GetDocuments(failedIds))
     }
 }
 
 private fun handleNavigationEffect(
     navigationEffect: Effect.Navigation,
     navController: NavController,
-    context: Context,
 ) {
     when (navigationEffect) {
         is Effect.Navigation.Pop -> {
@@ -272,10 +272,8 @@ private fun Content(
             contentPadding = PaddingValues(bottom = SPACING_MEDIUM.dp),
         ) {
             item {
-                val searchItemUi =
-                    SearchItemUi(searchLabel = stringResource(R.string.documents_screen_search_label))
                 FiltersSearchBar(
-                    placeholder = searchItemUi.searchLabel,
+                    placeholder = stringResource(R.string.documents_screen_search_label),
                     onValueChange = { onEventSend(Event.OnSearchQueryChanged(it)) },
                     onFilterClick = { onEventSend(Event.FiltersPressed) },
                     onClearClick = { onEventSend(Event.OnSearchQueryChanged("")) },
@@ -291,7 +289,7 @@ private fun Content(
                 }
             } else {
                 itemsIndexed(items = state.documentsUi) { index, (documentCategory, documents) ->
-                    DocumentCategory(
+                    DocumentCategorySection(
                         modifier = Modifier.fillMaxWidth(),
                         category = documentCategory,
                         documents = documents,
@@ -320,7 +318,7 @@ private fun Content(
         lifecycleOwner = LocalLifecycleOwner.current,
         lifecycleEvent = Lifecycle.Event.ON_RESUME,
     ) {
-        onEventSend(Event.GetDocuments)
+        onEventSend(Event.GetDocuments())
     }
 
     LifecycleEffect(
@@ -335,42 +333,37 @@ private fun Content(
     }
 
     LaunchedEffect(Unit) {
-        effectFlow
-            .onEach { effect ->
-                when (effect) {
-                    is Effect.Navigation -> {
-                        onNavigationRequested(effect)
-                    }
-
-                    is Effect.CloseBottomSheet -> {
-                        coroutineScope
-                            .launch {
-                                modalBottomSheetState.hide()
-                            }.invokeOnCompletion {
-                                if (!modalBottomSheetState.isVisible) {
-                                    onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = false))
-                                }
-                            }
-                    }
-
-                    is Effect.ShowBottomSheet -> {
-                        onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = true))
-                    }
-
-                    is Effect.DocumentsFetched -> {
-                        onEventSend(Event.TryIssuingDeferredDocuments(effect.deferredDocs))
-                    }
-
-                    is Effect.ResumeOnApplyFilter -> {
-                        onEventSend(Event.GetDocuments)
-                    }
+        effectFlow.collect { effect ->
+            when (effect) {
+                is Effect.Navigation -> {
+                    onNavigationRequested(effect)
                 }
-            }.collect()
+
+                is Effect.CloseBottomSheet -> {
+                    coroutineScope
+                        .launch {
+                            modalBottomSheetState.hide()
+                        }.invokeOnCompletion {
+                            if (!modalBottomSheetState.isVisible) {
+                                onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = false))
+                            }
+                        }
+                }
+
+                is Effect.ShowBottomSheet -> {
+                    onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = true))
+                }
+
+                is Effect.ResumeOnApplyFilter -> {
+                    onEventSend(Event.GetDocuments())
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun DocumentCategory(
+private fun DocumentCategorySection(
     modifier: Modifier = Modifier,
     category: DocumentCategory,
     documents: List<DocumentUi>,
@@ -385,32 +378,28 @@ private fun DocumentCategory(
             text = stringResource(category.stringResId),
         )
 
+        val categoryLabel = stringResource(category.stringResId)
         documents.forEach { documentItem: DocumentUi ->
-            WrapListItem(
+            StackedDocumentIdentityCard(
                 modifier = Modifier.fillMaxWidth(),
-                item = documentItem.uiData,
-                onItemClick = {
-                    val onItemClickEvent =
-                        if (
-                            documentItem.documentIssuanceState == DocumentIssuanceStateUi.Pending ||
-                            documentItem.documentIssuanceState == DocumentIssuanceStateUi.Failed
-                        ) {
+                title = documentItem.cardTitle(),
+                identification = "$categoryLabel • ${documentItem.documentIdentifier.toCardIdentificationTag()}",
+                supportingLines = documentItem.cardSupportingLines(),
+                status = documentItem.documentIssuanceState.toCardStatusLabel(),
+                onClick = {
+                    if (
+                        documentItem.documentIssuanceState == DocumentIssuanceStateUi.Pending ||
+                        documentItem.documentIssuanceState == DocumentIssuanceStateUi.Failed
+                    ) {
+                        onEventSend(
                             Event.BottomSheet.DeferredDocument.DeferredNotReadyYet.DocumentSelected(
                                 documentId = documentItem.uiData.itemId,
-                            )
-                        } else {
-                            Event.GoToDocumentDetails(documentItem.uiData.itemId)
-                        }
-                    onEventSend(onItemClickEvent)
+                            ),
+                        )
+                    } else {
+                        onEventSend(Event.GoToDocumentDetails(documentItem.uiData.itemId))
+                    }
                 },
-                supportingTextColor =
-                    when (documentItem.documentIssuanceState) {
-                        DocumentIssuanceStateUi.Issued -> null
-                        DocumentIssuanceStateUi.Pending -> MaterialTheme.colorScheme.warning
-                        DocumentIssuanceStateUi.Failed -> MaterialTheme.colorScheme.error
-                        DocumentIssuanceStateUi.Expired -> MaterialTheme.colorScheme.error
-                        DocumentIssuanceStateUi.Revoked -> MaterialTheme.colorScheme.error
-                    },
             )
         }
     }
@@ -433,6 +422,25 @@ private fun NoResults(
         )
     }
 }
+
+private fun DocumentUi.cardTitle(): String =
+    (uiData.mainContentData as? ListItemMainContentDataUi.Text)?.text.orEmpty()
+
+private fun DocumentUi.cardSupportingLines(): List<String> =
+    listOfNotNull(
+        uiData.overlineText,
+        uiData.supportingText,
+    )
+
+@Composable
+private fun DocumentIssuanceStateUi.toCardStatusLabel(): String? =
+    when (this) {
+        DocumentIssuanceStateUi.Issued -> null
+        DocumentIssuanceStateUi.Pending -> stringResource(R.string.dashboard_document_deferred_pending)
+        DocumentIssuanceStateUi.Failed -> stringResource(R.string.dashboard_document_deferred_failed)
+        DocumentIssuanceStateUi.Expired -> stringResource(R.string.dashboard_document_has_expired)
+        DocumentIssuanceStateUi.Revoked -> stringResource(R.string.dashboard_document_revoked)
+    }
 
 @Composable
 private fun DocumentsSheetContent(
