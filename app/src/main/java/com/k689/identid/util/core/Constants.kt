@@ -25,4 +25,7 @@ object CoreActions {
     const val REVOCATION_WORK_MESSAGE_ACTION = "revocation.message.action"
     const val REVOCATION_IDS_EXTRA = "revocation.ids.extra"
     const val REVOCATION_IDS_DETAILS_EXTRA = "revocation.ids_details.extra"
+
+    const val DEFERRED_ISSUANCE_REFRESH_ACTION = "deferred_issuance.refresh.action"
+    const val DEFERRED_ISSUANCE_FAILED_IDS_EXTRA = "deferred_issuance.failed_ids.extra"
 }
