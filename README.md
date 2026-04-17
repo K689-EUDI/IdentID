@@ -29,6 +29,20 @@ Build and run (from project root):
 ./gradlew installDebug
 ```
 
+`release` consumes the shared baseline profile. `debug` stays debuggable and is intended for normal local development.
+
+Generate Baseline Profiles:
+
+```bash
+./gradlew :app:generateBaselineProfile
+```
+
+This uses the `baselineprofile` module to capture app startup and a core dashboard navigation journey on a connected device or emulator.
+
+The generated profile is merged into the shared app source set at `app/src/main/generated/baselineProfiles/baseline-prof.txt`.
+
+The `release` variant consumes that shared profile.
+
 Open the project in Android Studio and run the `app` module on a device/emulator.
 
 Configuration

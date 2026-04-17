@@ -48,3 +48,4 @@ plugins {
 
 rootProject.name = "IdentID"
 include(":app")
+include(":baselineprofile")

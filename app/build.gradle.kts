@@ -2,12 +2,18 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.androidx.baselineprofile)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.secrets)
     alias(libs.plugins.androidx.room)
     id("kotlin-parcelize")
+}
+
+baselineProfile {
+    mergeIntoMain = true
+    saveInSrc = true
 }
 
 fun getLocalProperty(key: String): String? {
@@ -111,7 +117,7 @@ android {
         }
         release {
             isDebuggable = false
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             if (keystoreFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
@@ -157,11 +163,6 @@ android {
             )
         )
     }
-
-    // KSP generated sources for Koin
-    sourceSets.all {
-        kotlin.directories.add("build/generated/ksp/$name/kotlin")
-    }
 }
 
 room {
@@ -174,6 +175,8 @@ secrets {
 }
 
 dependencies {
+    baselineProfile(project(":baselineprofile"))
+
     // Desugaring
     coreLibraryDesugaring(libs.android.desugarJdkLibs)
 
