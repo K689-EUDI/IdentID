@@ -117,7 +117,7 @@ android {
         }
         release {
             isDebuggable = false
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             if (keystoreFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
