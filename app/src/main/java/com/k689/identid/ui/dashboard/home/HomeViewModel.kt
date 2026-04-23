@@ -139,13 +139,16 @@ sealed class Event : ViewEvent {
 
     data class TransactionClicked(
         val transactionId: String,
+        val isPseudonym: Boolean = false,
     ) : Event()
 
     data object SeeAllDocumentsClicked : Event()
 
     data object SeeAllTransactionsClicked : Event()
 
-    data class DrawerMenuItemClicked(val item: DrawerMenuItem) : Event()
+    data class DrawerMenuItemClicked(
+        val item: DrawerMenuItem,
+    ) : Event()
 }
 
 sealed class Effect : ViewSideEffect {
@@ -297,7 +300,7 @@ class HomeViewModel(
             }
 
             is Event.TransactionClicked -> {
-                navigateToTransactionDetails(event.transactionId)
+                navigateToTransactionDetails(event.transactionId, event.isPseudonym)
             }
 
             is Event.SeeAllDocumentsClicked -> {
@@ -414,14 +417,34 @@ class HomeViewModel(
         }
     }
 
-    private fun navigateToTransactionDetails(transactionId: String) {
+    private fun navigateToTransactionDetails(
+        transactionId: String,
+        isPseudonym: Boolean = false,
+    ) {
         setEffect {
             Effect.Navigation.SwitchScreen(
                 screenRoute =
-                    generateComposableNavigationLink(
-                        screen = DashboardScreens.TransactionDetails,
-                        arguments = generateComposableArguments(mapOf("transactionId" to transactionId)),
-                    ),
+                    if (!isPseudonym) {
+                        generateComposableNavigationLink(
+                            screen = DashboardScreens.TransactionDetails,
+                            arguments =
+                                generateComposableArguments(
+                                    mapOf(
+                                        "transactionId" to transactionId,
+                                    ),
+                                ),
+                        )
+                    } else {
+                        generateComposableNavigationLink(
+                            screen = DashboardScreens.PseudonymTransactionLogDetail,
+                            arguments =
+                                generateComposableArguments(
+                                    mapOf(
+                                        "logId" to transactionId,
+                                    ),
+                                ),
+                        )
+                    },
             )
         }
     }
