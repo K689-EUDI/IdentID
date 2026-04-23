@@ -19,7 +19,6 @@ package com.k689.identid.ui.dashboard.home
 import android.Manifest
 import android.content.Context
 import android.os.Build
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -219,7 +218,7 @@ fun HomeScreen(
                                 ) { transaction ->
                                     RecentTransactionItem(
                                         transaction = transaction,
-                                        onTransactionClicked = { viewModel.setEvent(Event.TransactionClicked(it)) },
+                                        onTransactionClicked = { viewModel.setEvent(Event.TransactionClicked(transactionId = transaction.transactionUi.uiData.header.itemId, isPseudonym = transaction.transactionUi.isPseudonym)) },
                                     )
                                 }
 
@@ -635,9 +634,8 @@ private fun SeeAllDocumentsCard(
 @Composable
 private fun RecentTransactionItem(
     transaction: DashboardTransaction,
-    onTransactionClicked: (String) -> Unit,
+    onTransactionClicked: () -> Unit,
 ) {
-    val itemId = transaction.transactionUi.uiData.header.itemId
     val header = transaction.transactionUi.uiData.header
     val status = transaction.transactionUi.uiStatus
     val isFailed = status == TransactionStatusUi.Failed
@@ -646,7 +644,7 @@ private fun RecentTransactionItem(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clickable { onTransactionClicked(itemId) }
+                .clickable { onTransactionClicked() }
                 .padding(horizontal = SPACING_LARGE.dp, vertical = SPACING_MEDIUM.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(SPACING_MEDIUM.dp),
