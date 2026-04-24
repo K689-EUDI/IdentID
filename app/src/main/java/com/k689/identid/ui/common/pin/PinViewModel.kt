@@ -120,8 +120,6 @@ sealed class Effect : ViewSideEffect {
         data object Finish : Navigation()
     }
 
-    data object ShowBottomSheet : Effect()
-
     data object CloseBottomSheet : Effect()
 }
 
@@ -200,7 +198,9 @@ class PinViewModel(
             }
 
             is Event.CancelPressed -> {
-                showBottomSheet()
+                setState {
+                    copy(isBottomSheetOpen = true)
+                }
             }
 
             is Event.BottomSheet.UpdateBottomSheetState -> {
@@ -462,12 +462,6 @@ class PinViewModel(
                     ),
                 ),
         )
-    }
-
-    private fun showBottomSheet() {
-        setEffect {
-            Effect.ShowBottomSheet
-        }
     }
 
     private fun hideBottomSheet() {
