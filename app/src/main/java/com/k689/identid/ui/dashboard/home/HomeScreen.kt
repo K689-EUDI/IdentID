@@ -104,6 +104,7 @@ import com.k689.identid.ui.component.utils.SPACING_EXTRA_LARGE
 import com.k689.identid.ui.component.utils.SPACING_LARGE
 import com.k689.identid.ui.component.utils.SPACING_MEDIUM
 import com.k689.identid.ui.component.utils.SPACING_SMALL
+import com.k689.identid.ui.component.utils.SPACING_XX_LARGE
 import com.k689.identid.ui.component.wrap.ActionCardConfig
 import com.k689.identid.ui.component.wrap.BottomSheetTextDataUi
 import com.k689.identid.ui.component.wrap.DialogBottomSheet
@@ -595,25 +596,25 @@ private fun SeeAllDocumentsCard(
             }
         }
     } else {
-        Box(
-            modifier = modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
+        Surface(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 110.dp)
+                    .clip(MaterialTheme.shapes.extraLarge)
+                    .clickable { onClicked() },
+            color = MaterialTheme.colorScheme.primaryContainer,
+            shape = MaterialTheme.shapes.extraLarge,
         ) {
             Box(
-                modifier =
-                    Modifier
-                        .size(100.dp)
-                        .clip(MaterialTheme.shapes.extraLarge)
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .clickable { onClicked() }
-                        .padding(16.dp),
+                modifier = Modifier.size(100.dp).padding(16.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(36.dp),
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                     Text(

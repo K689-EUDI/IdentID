@@ -90,17 +90,12 @@ fun PinScreen(
     val context = LocalContext.current
     var pinInput by rememberSaveable(state.pinState, state.quickPinSize) { mutableStateOf("") }
 
+    val isBottomSheetOpen = state.isBottomSheetOpen
     val scope = rememberCoroutineScope()
     val bottomSheetState =
         rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
         )
-
-    LaunchedEffect(state.isBottomSheetOpen) {
-        if (state.isBottomSheetOpen) {
-            bottomSheetState.show()
-        }
-    }
 
     LaunchedEffect(state.resetPin) {
         if (state.resetPin) {
@@ -161,24 +156,24 @@ fun PinScreen(
                 coroutineScope = scope,
                 modalBottomSheetState = bottomSheetState,
             )
-        }
 
-        if (state.isBottomSheetOpen) {
-            WrapModalBottomSheet(
-                onDismissRequest = {
-                    viewModel.setEvent(
-                        Event.BottomSheet.UpdateBottomSheetState(
-                            isOpen = false,
-                        ),
-                    )
-                },
-                sheetState = bottomSheetState,
-            ) {
-                SheetContent(
-                    onEventSent = {
-                        viewModel.setEvent(it)
+            if (isBottomSheetOpen) {
+                WrapModalBottomSheet(
+                    onDismissRequest = {
+                        viewModel.setEvent(
+                            Event.BottomSheet.UpdateBottomSheetState(
+                                isOpen = false,
+                            ),
+                        )
                     },
-                )
+                    sheetState = bottomSheetState,
+                ) {
+                    SheetContent(
+                        onEventSent = {
+                            viewModel.setEvent(it)
+                        },
+                    )
+                }
             }
         }
     }
@@ -299,6 +294,10 @@ private fun ColumnScope.Content(
                                     onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = false))
                                 }
                             }
+                    }
+
+                    is Effect.ShowBottomSheet -> {
+                        onEventSend(Event.BottomSheet.UpdateBottomSheetState(isOpen = true))
                     }
                 }
             }.collect()
