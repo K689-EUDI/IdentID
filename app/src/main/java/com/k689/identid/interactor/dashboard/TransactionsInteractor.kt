@@ -392,7 +392,11 @@ class TransactionsInteractorImpl(
                     )
                 }
 
-            val filterableItems: List<FilterableItem> = coreFilterableItems + pseudonymFilterableItems
+            val filterableItems: List<FilterableItem> =
+                (coreFilterableItems + pseudonymFilterableItems)
+                    .sortedBy { filterableItem ->
+                        (filterableItem.payload as? TransactionUi)?.uiData?.header?.supportingText
+                    }.reversed()
 
             val creationDates: List<LocalDate> =
                 filterableItems
@@ -412,7 +416,6 @@ class TransactionsInteractorImpl(
                 } else {
                     null
                 }
-
             val successState =
                 TransactionInteractorGetTransactionsPartialState.Success(
                     allTransactions = FilterableList(items = filterableItems),
