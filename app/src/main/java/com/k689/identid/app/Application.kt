@@ -28,6 +28,7 @@ import com.k689.identid.config.WalletCoreConfig
 import com.k689.identid.di.setupKoin
 import com.k689.identid.service.NfcEngagementService
 import com.k689.identid.service.TransferNfcEngagementService
+import com.k689.identid.worker.ExpiryNotificationWorkManager
 import com.k689.identid.worker.RevocationWorkManager
 import eu.europa.ec.eudi.rqesui.infrastructure.EudiRQESUi
 import kotlinx.coroutines.CoroutineScope
@@ -49,6 +50,7 @@ class Application : Application() {
         ensureNfcServicesEnabled()
         initializeKoin().initializeRqes()
         initializeRevocationWorkManager()
+        initializeExpiryWorkManager()
         refreshCertificates()
     }
 
@@ -90,6 +92,21 @@ class Application : Application() {
             RevocationWorkManager.REVOCATION_WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
             periodicWorkRequest,
+        )
+    }
+
+    private fun initializeExpiryWorkManager() {
+        val expiryWorkRequest =
+            PeriodicWorkRequest
+                .Builder(
+                    workerClass = ExpiryNotificationWorkManager::class.java,
+                    repeatInterval = java.time.Duration.ofDays(1),
+                ).build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            ExpiryNotificationWorkManager.EXPIRY_WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            expiryWorkRequest,
         )
     }
 }
