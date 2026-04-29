@@ -70,10 +70,10 @@ fun LoyaltyCardScanScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val permissionState = rememberPermissionState(permission = android.Manifest.permission.CAMERA)
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-    var hasPermission by remember { mutableStateOf(false) }
-    var shouldShowPermissionRationale by remember { mutableStateOf(false) }
     var finishedScanning by remember { mutableStateOf(false) }
     var cameraBindingFailed by remember { mutableStateOf(false) }
+    val hasPermission = permissionState.status.isGranted
+    val shouldShowPermissionRationale = permissionState.status.shouldShowRationale
     val barcodeAnalyzer =
         remember {
             BarcodeAnalyzer { result ->
@@ -107,13 +107,17 @@ fun LoyaltyCardScanScreen(
         }
     }
 
-    LaunchedEffect(permissionState.status) {
-        hasPermission = permissionState.status.isGranted
-        shouldShowPermissionRationale = permissionState.status.shouldShowRationale
-        cameraBindingFailed = false
-        if (!permissionState.status.isGranted && !permissionState.status.shouldShowRationale) {
+    if (!hasPermission && !shouldShowPermissionRationale) {
+        LaunchedEffect(Unit) {
             permissionState.launchPermissionRequest()
         }
+    }
+
+    LaunchedEffect(hasPermission) {
+        if (hasPermission) {
+            finishedScanning = false
+        }
+        cameraBindingFailed = false
     }
 
     ContentScreen(

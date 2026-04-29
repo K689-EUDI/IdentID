@@ -3,6 +3,7 @@ package com.k689.identid.ui.dashboard.loyaltycards.detail
 import androidx.lifecycle.viewModelScope
 import com.k689.identid.interactor.dashboard.LoyaltyCardDetailUi
 import com.k689.identid.interactor.dashboard.LoyaltyCardsInteractor
+import com.k689.identid.ui.component.content.ContentErrorConfig
 import com.k689.identid.ui.mvi.MviViewModel
 import com.k689.identid.ui.mvi.ViewEvent
 import com.k689.identid.ui.mvi.ViewSideEffect
@@ -13,6 +14,7 @@ import org.koin.android.annotation.KoinViewModel
 data class State(
     val isLoading: Boolean = true,
     val detail: LoyaltyCardDetailUi? = null,
+    val error: ContentErrorConfig? = null,
     val showDeleteConfirmation: Boolean = false,
 ) : ViewState
 
@@ -55,9 +57,20 @@ class LoyaltyCardDetailViewModel(
 
     private fun load() {
         viewModelScope.launch {
-            setState { copy(isLoading = true) }
+            setState { copy(isLoading = true, error = null) }
             val detail = loyaltyCardsInteractor.getDetail(loyaltyCardId)
-            setState { copy(isLoading = false, detail = detail) }
+            setState {
+                copy(
+                    isLoading = false,
+                    detail = detail,
+                    error =
+                        if (detail == null) {
+                            ContentErrorConfig(onCancel = { setEvent(Event.Pop) })
+                        } else {
+                            null
+                        },
+                )
+            }
         }
     }
 

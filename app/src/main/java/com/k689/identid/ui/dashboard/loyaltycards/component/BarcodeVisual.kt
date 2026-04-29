@@ -10,7 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -20,6 +21,8 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.EnumMap
 
 @Composable
@@ -28,11 +31,15 @@ fun BarcodeVisual(
     barcodeFormat: String,
     modifier: Modifier = Modifier,
 ) {
-    val imageBitmap = remember(barcodeValue, barcodeFormat) {
-        runCatching {
-            createBarcodeBitmap(barcodeValue, barcodeFormat)
-        }.getOrNull()
+    val imageBitmap by produceState<ImageBitmap?>(initialValue = null, barcodeValue, barcodeFormat) {
+        value =
+            withContext(Dispatchers.Default) {
+                runCatching {
+                    createBarcodeBitmap(barcodeValue, barcodeFormat)
+                }.getOrNull()
+            }
     }
+    val renderedBitmap = imageBitmap
 
     Box(
         modifier =
@@ -44,9 +51,9 @@ fun BarcodeVisual(
                 ).padding(16.dp),
         contentAlignment = Alignment.Center,
     ) {
-        if (imageBitmap != null) {
+        if (renderedBitmap != null) {
             Image(
-                bitmap = imageBitmap,
+                bitmap = renderedBitmap,
                 contentDescription = null,
                 modifier = Modifier.fillMaxWidth().height(if (barcodeFormat == BarcodeFormat.QR_CODE.name) 260.dp else 140.dp),
             )

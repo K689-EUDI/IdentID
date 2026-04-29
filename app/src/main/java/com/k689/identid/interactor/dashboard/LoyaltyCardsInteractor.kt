@@ -2,14 +2,12 @@ package com.k689.identid.interactor.dashboard
 
 import com.k689.identid.model.storage.Bookmark
 import com.k689.identid.model.storage.LoyaltyCard
+import com.k689.identid.model.storage.loyaltyCardIdFromBookmarkId
 import com.k689.identid.model.storage.loyaltyCardBookmarkId
 import com.k689.identid.storage.dao.BookmarkDao
 import com.k689.identid.storage.dao.LoyaltyCardDao
+import com.k689.identid.util.business.convertMillisToDate
 import kotlinx.coroutines.flow.Flow
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import java.util.UUID
 
 data class LoyaltyCardListItemUi(
@@ -57,8 +55,7 @@ class LoyaltyCardsInteractorImpl(
         loyaltyCardDao.retrieveAll().map { it.toListItemUi() }
 
     override suspend fun findExistingByBarcodeValue(barcodeValue: String): LoyaltyCardListItemUi? =
-        loyaltyCardDao.retrieveAll()
-            .firstOrNull { it.barcodeValue == barcodeValue.trim() }
+        loyaltyCardDao.retrieveByBarcodeValue(barcodeValue.trim())
             ?.toListItemUi()
 
     override suspend fun getDetail(id: String): LoyaltyCardDetailUi? {
@@ -113,9 +110,8 @@ class LoyaltyCardsInteractorImpl(
     override suspend fun getBookmarkedCards(): List<LoyaltyCard> {
         val bookmarkedIds =
             bookmarkDao.retrieveAll()
-                .mapNotNull { bookmark ->
-                    bookmark.identifier.takeIf { it.startsWith("loyalty:") }?.removePrefix("loyalty:")
-                }.toSet()
+                .mapNotNull { bookmark -> loyaltyCardIdFromBookmarkId(bookmark.identifier) }
+                .toSet()
 
         return loyaltyCardDao.retrieveAll().filter { it.id in bookmarkedIds }
     }
@@ -130,7 +126,4 @@ private fun LoyaltyCard.toListItemUi(): LoyaltyCardListItemUi =
         createdAtLabel = createdAt.toReadableDate(),
     )
 
-private fun Long.toReadableDate(): String {
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.getDefault()).withZone(ZoneId.systemDefault())
-    return formatter.format(Instant.ofEpochMilli(this))
-}
+private fun Long.toReadableDate(): String = convertMillisToDate(this)

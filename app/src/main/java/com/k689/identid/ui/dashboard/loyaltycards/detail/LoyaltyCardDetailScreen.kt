@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.k689.identid.R
+import com.k689.identid.ui.component.content.ContentErrorConfig
 import com.k689.identid.ui.component.content.ContentScreen
 import com.k689.identid.ui.component.content.ContentTitle
 import com.k689.identid.ui.component.content.ScreenNavigateAction
@@ -38,6 +39,14 @@ fun LoyaltyCardDetailScreen(
     ContentScreen(
         navigatableAction = ScreenNavigateAction.BACKABLE,
         isLoading = state.isLoading,
+        contentErrorConfig =
+            state.error?.let {
+                ContentErrorConfig(
+                    errorTitle = stringResource(R.string.generic_error_message),
+                    errorSubTitle = stringResource(R.string.generic_error_description),
+                    onCancel = it.onCancel,
+                )
+            },
         onBack = { viewModel.setEvent(Event.Pop) },
     ) { paddingValues ->
         Content(state = state, paddingValues = paddingValues, onEventSend = viewModel::setEvent)

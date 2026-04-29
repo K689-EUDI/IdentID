@@ -18,6 +18,9 @@ interface LoyaltyCardDao {
     @Query("SELECT * FROM loyalty_cards WHERE id = :id")
     suspend fun retrieve(id: String): LoyaltyCard?
 
+    @Query("SELECT * FROM loyalty_cards WHERE barcodeValue = :barcodeValue LIMIT 1")
+    suspend fun retrieveByBarcodeValue(barcodeValue: String): LoyaltyCard?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun store(value: LoyaltyCard)
 
