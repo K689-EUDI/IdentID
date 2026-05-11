@@ -104,7 +104,7 @@ fun WrapStickyBottomContent(
                 onClick = stickyBottomType.onClick,
                 enabled = stickyBottomType.enabled,
                 icon = stickyBottomType.icon,
-                buttonType = stickyBottomType.type,
+                // buttonType = stickyBottomType.type,
             )
         }
 

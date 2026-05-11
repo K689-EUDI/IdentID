@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,7 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.k689.identid.ui.component.utils.SPACING_LARGE
 import com.k689.identid.ui.component.utils.SPACING_MEDIUM
+import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.wrap.ButtonConfig
 import com.k689.identid.ui.component.wrap.ButtonType
 import com.k689.identid.ui.component.wrap.WrapButton
@@ -51,12 +54,12 @@ fun LargeActionFooter(
     buttonType: ButtonType = ButtonType.PRIMARY,
 ) {
     Column(
-        modifier = modifier.padding(SPACING_MEDIUM.dp),
+        modifier = modifier.padding(SPACING_SMALL.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         WrapButton(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 55.dp),
             buttonConfig =
                 ButtonConfig(
                     type = buttonType,
@@ -68,20 +71,21 @@ fun LargeActionFooter(
             if (icon != null) {
                 WrapIcon(
                     iconData = icon,
-                    modifier = Modifier.padding(end = 8.dp).size(24.dp),
+                    modifier = Modifier.padding(end = 8.dp).size(36.dp),
                 )
             }
             Text(
                 text = text,
                 style =
                     MaterialTheme.typography.headlineSmall.copy(
-                        color = if (buttonType == ButtonType.PRIMARY) {
-                            MaterialTheme.colorScheme.onPrimary
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        },
+                        color =
+                            if (buttonType == ButtonType.PRIMARY) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            },
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        fontSize = 18.sp,
                     ),
             )
         }
