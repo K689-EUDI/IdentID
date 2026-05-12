@@ -106,15 +106,21 @@ sealed class Event : ViewEvent {
 
     data object OnFiltersApply : Event()
 
-    data class OnToggleFilterExpansion(val groupId: String) : Event()
+    data class OnToggleFilterExpansion(
+        val groupId: String,
+    ) : Event()
 
     data class OnSortingOrderChanged(
         val sortingOrder: DualSelectorButton,
     ) : Event()
 
-    data class OnDocumentClick(val docId: DocumentId) : Event()
+    data class OnDocumentClick(
+        val docId: DocumentId,
+    ) : Event()
 
-    data class OnDocumentLongClick(val docId: DocumentId) : Event()
+    data class OnDocumentLongClick(
+        val docId: DocumentId,
+    ) : Event()
 
     data object OnCancelSelectionMode : Event()
 
@@ -167,7 +173,7 @@ sealed class Effect : ViewSideEffect {
 
         data class SwitchScreen(
             val screenRoute: String,
-            val popUpToScreenRoute: String = DashboardScreens.Dashboard.screenRoute,
+            val popUpToScreenRoute: String = DashboardScreens.Documents.screenRoute,
             val inclusive: Boolean = false,
         ) : Navigation()
     }
@@ -308,9 +314,10 @@ class DocumentsViewModel(
 
             is Event.OnDeleteSelectedDocuments -> {
                 showBottomSheet(
-                    sheetContent = DocumentsBottomSheetContent.ConfirmDelete(
-                        documentIds = viewState.value.selectedDocumentIds.toList(),
-                    ),
+                    sheetContent =
+                        DocumentsBottomSheetContent.ConfirmDelete(
+                            documentIds = viewState.value.selectedDocumentIds.toList(),
+                        ),
                 )
             }
 
@@ -546,8 +553,11 @@ class DocumentsViewModel(
                                     error =
                                         ContentErrorConfig(
                                             onRetry = {
-                                                if (event != null) setEvent(event)
-                                                else deleteDocuments(documentIds)
+                                                if (event != null) {
+                                                    setEvent(event)
+                                                } else {
+                                                    deleteDocuments(documentIds)
+                                                }
                                             },
                                             errorSubTitle = response.errorMessage,
                                             onCancel = {
@@ -566,11 +576,12 @@ class DocumentsViewModel(
 
     private fun toggleDocumentSelection(docId: DocumentId) {
         val currentSelected = viewState.value.selectedDocumentIds
-        val newSelected = if (currentSelected.contains(docId)) {
-            currentSelected - docId
-        } else {
-            currentSelected + docId
-        }
+        val newSelected =
+            if (currentSelected.contains(docId)) {
+                currentSelected - docId
+            } else {
+                currentSelected + docId
+            }
 
         if (newSelected.isEmpty()) {
             setState {
@@ -587,15 +598,19 @@ class DocumentsViewModel(
     }
 
     private fun handleDocumentClick(docId: DocumentId) {
-        val document = viewState.value.documentsUi.flatMap { it.second }.find { it.uiData.itemId == docId }
+        val document =
+            viewState.value.documentsUi
+                .flatMap { it.second }
+                .find { it.uiData.itemId == docId }
         if (document != null) {
             if (document.documentIssuanceState == DocumentIssuanceStateUi.Pending ||
                 document.documentIssuanceState == DocumentIssuanceStateUi.Failed
             ) {
                 showBottomSheet(
-                    sheetContent = DeferredDocumentPressed(
-                        documentId = docId,
-                    ),
+                    sheetContent =
+                        DeferredDocumentPressed(
+                            documentId = docId,
+                        ),
                 )
             } else {
                 goToDocumentDetails(docId)
@@ -712,13 +727,14 @@ class DocumentsViewModel(
 
     private fun toggleFilterExpansion(groupId: String) {
         val currentFilters = viewState.value.filtersUi
-        val updatedFilters = currentFilters.map { filter ->
-            if (filter.header.itemId == groupId) {
-                filter.copy(isExpanded = !filter.isExpanded)
-            } else {
-                filter
+        val updatedFilters =
+            currentFilters.map { filter ->
+                if (filter.header.itemId == groupId) {
+                    filter.copy(isExpanded = !filter.isExpanded)
+                } else {
+                    filter
+                }
             }
-        }
         setState { copy(filtersUi = updatedFilters) }
     }
 
