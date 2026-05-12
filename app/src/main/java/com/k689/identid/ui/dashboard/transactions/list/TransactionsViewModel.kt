@@ -142,7 +142,7 @@ sealed class Effect : ViewSideEffect {
 
         data class SwitchScreen(
             val screenRoute: String,
-            val popUpToScreenRoute: String = DashboardScreens.Dashboard.screenRoute,
+            val popUpToScreenRoute: String = DashboardScreens.Transactions.screenRoute,
             val inclusive: Boolean = false,
         ) : Navigation()
     }
