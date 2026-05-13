@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import com.k689.identid.theme.sets.ThemeSet
 import com.k689.identid.theme.templates.ThemeColorsTemplate
@@ -57,6 +58,7 @@ class ThemeManager {
         darkTheme: Boolean = isSystemInDarkTheme(),
         disableDynamicTheming: Boolean = false,
         seedColor: Color? = null,
+        themeStyle: ThemeStyle = ThemeStyle.TONAL,
         isOledMode: Boolean = false,
         useDynamicColor: Boolean = true,
         content: @Composable () -> Unit,
@@ -76,7 +78,13 @@ class ThemeManager {
                 }
 
                 seedColor != null -> {
-                    generateColorSchemeFromSeed(seedColor, darkTheme, if (darkTheme) darkColorScheme else lightColorScheme, isOledMode)
+                    generateColorSchemeFromSeed(
+                        seed = seedColor,
+                        isDark = darkTheme,
+                        base = if (darkTheme) darkColorScheme else lightColorScheme,
+                        isOledMode = isOledMode,
+                        style = themeStyle,
+                    )
                 }
 
                 darkTheme -> {
@@ -261,7 +269,18 @@ class ThemeManager {
         isDark: Boolean,
         base: ColorScheme,
         isOledMode: Boolean = false,
+        style: ThemeStyle = ThemeStyle.TONAL,
     ): ColorScheme {
+        val hsv = FloatArray(3)
+        android.graphics.Color.colorToHSV(seed.toArgb(), hsv)
+        val hue = hsv[0]
+        val saturation = hsv[1]
+        val value = hsv[2]
+
+        fun fromHsv(h: Float, s: Float, v: Float): Color {
+            return Color(android.graphics.Color.HSVToColor(floatArrayOf(h % 360f, s.coerceIn(0f, 1f), v.coerceIn(0f, 1f))))
+        }
+
         val toneSurface =
             if (isDark) {
                 if (isOledMode) Color.Black else Color(0xFF060606)
@@ -269,12 +288,29 @@ class ThemeManager {
                 Color.White
             }
 
+        // Adjust palettes based on style
+        val primaryHue = hue
+        val secondaryHue = when (style) {
+            ThemeStyle.ANALOGOUS -> hue + 30f
+            ThemeStyle.VIBRANT -> hue + 60f
+            ThemeStyle.EXPRESSIVE -> hue + 120f
+            else -> hue
+        }
+        val tertiaryHue = when (style) {
+            ThemeStyle.ANALOGOUS -> hue - 30f
+            ThemeStyle.VIBRANT -> hue + 180f
+            ThemeStyle.EXPRESSIVE -> hue + 240f
+            else -> hue + 60f
+        }
+
+        val saturationMult = if (style == ThemeStyle.MONOCHROMATIC) 0.3f else 1f
+
         return if (isDark) {
-            // Material 3 Dark Tones - High vibrancy with deep, tinted backgrounds
-            val primary = lerp(seed, Color.White, 0.4f)
-            val primaryContainer = lerp(seed, Color.Black, 0.4f)
-            val secondary = lerp(seed, Color.White, 0.2f)
-            val secondaryContainer = lerp(seed, Color.Black, 0.6f)
+            val primary = fromHsv(primaryHue, saturation * 0.4f * saturationMult, 0.9f)
+            val primaryContainer = fromHsv(primaryHue, saturation * 0.8f * saturationMult, 0.3f)
+            val secondary = fromHsv(secondaryHue, saturation * 0.3f * saturationMult, 0.8f)
+            val secondaryContainer = fromHsv(secondaryHue, saturation * 0.6f * saturationMult, 0.2f)
+            val tertiary = fromHsv(tertiaryHue, saturation * 0.3f * saturationMult, 0.7f)
 
             base.copy(
                 primary = primary,
@@ -285,7 +321,7 @@ class ThemeManager {
                 onSecondary = Color.Black,
                 secondaryContainer = secondaryContainer,
                 onSecondaryContainer = Color.White,
-                tertiary = lerp(seed, Color.Cyan, 0.3f),
+                tertiary = tertiary,
                 surface = lerp(seed, toneSurface, if (isOledMode) 0.98f else 0.92f),
                 onSurface = Color.White,
                 background = lerp(seed, toneSurface, if (isOledMode) 1f else 0.95f),
@@ -300,31 +336,31 @@ class ThemeManager {
                 surfaceContainerHighest = lerp(seed, if (isOledMode) Color(0xFF181818) else Color(0xFF2C2C2C), 0.74f),
             )
         } else {
-            // Material 3 Light Tones - Vibrant but balanced (matching Figma "warm" look)
-            val primary = seed
-            val primaryContainer = lerp(seed, Color.White, 0.82f)
-            val secondary = lerp(seed, Color.Black, 0.2f)
-            val secondaryContainer = lerp(seed, Color.White, 0.88f)
+            val primary = fromHsv(primaryHue, saturation, value)
+            val primaryContainer = fromHsv(primaryHue, saturation * 0.2f, 0.95f)
+            val secondary = fromHsv(secondaryHue, saturation * 0.6f * saturationMult, value * 0.8f)
+            val secondaryContainer = fromHsv(secondaryHue, saturation * 0.15f * saturationMult, 0.97f)
+            val tertiary = fromHsv(tertiaryHue, saturation * 0.5f * saturationMult, value * 0.7f)
 
             base.copy(
                 primary = primary,
                 onPrimary = if (primary.luminance() > 0.5f) Color.Black else Color.White,
                 primaryContainer = primaryContainer,
-                onPrimaryContainer = lerp(seed, Color.Black, 0.7f),
+                onPrimaryContainer = lerp(primary, Color.Black, 0.7f),
                 secondary = secondary,
                 onSecondary = Color.White,
                 secondaryContainer = secondaryContainer,
-                onSecondaryContainer = lerp(seed, Color.Black, 0.7f),
-                tertiary = lerp(seed, Color.Cyan, 0.2f),
-                surface = lerp(seed, Color.White, 0.96f), // Warm background (Tone 96-98)
-                onSurface = lerp(seed, Color.Black, 0.85f), // Tinted dark text
+                onSecondaryContainer = lerp(secondary, Color.Black, 0.7f),
+                tertiary = tertiary,
+                surface = lerp(seed, Color.White, 0.96f),
+                onSurface = lerp(seed, Color.Black, 0.85f),
                 background = lerp(seed, Color.White, 0.96f),
                 onBackground = lerp(seed, Color.Black, 0.85f),
                 surfaceVariant = lerp(seed, Color(0xFFE7E0EC), 0.82f),
                 onSurfaceVariant = lerp(seed, Color.Black, 0.6f),
                 outline = lerp(seed, Color(0xFF79747E), 0.5f),
                 surfaceContainerLowest = Color.White,
-                surfaceContainerLow = lerp(seed, Color.White, 0.92f), // Clear but subtle tint
+                surfaceContainerLow = lerp(seed, Color.White, 0.92f),
                 surfaceContainer = lerp(seed, Color.White, 0.88f),
                 surfaceContainerHigh = lerp(seed, Color.White, 0.84f),
                 surfaceContainerHighest = lerp(seed, Color.White, 0.80f),

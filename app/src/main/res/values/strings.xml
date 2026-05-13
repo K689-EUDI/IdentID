@@ -324,6 +324,20 @@
     <string name="preferences_theme_option_light">Light</string>
     <string name="preferences_theme_option_dark">Dark</string>
     <string name="preferences_theme_option_system_default">System Default</string>
+    <string name="preferences_oled_mode_label">OLED Mode</string>
+    <string name="preferences_dynamic_color_label">Dynamic Color</string>
+    <string name="preferences_seed_color_label">Seed Color</string>
+    <string name="preferences_color_style_label">Color Style</string>
+    <string name="preferences_color_tuning_label">Color Tuning</string>
+    <string name="preferences_hue_label">Hue</string>
+    <string name="preferences_saturation_label">Saturation</string>
+    <string name="preferences_value_label">Value</string>
+    <string name="preferences_theme_preview_label">Theme Preview</string>
+    <string name="theme_style_tonal">Tonal</string>
+    <string name="theme_style_monochromatic">Monochromatic</string>
+    <string name="theme_style_analogous">Analogous</string>
+    <string name="theme_style_vibrant">Vibrant</string>
+    <string name="theme_style_expressive">Expressive</string>
     <!--endregion-->
     <!-- region Home Screen -->
     <string name="app_title" translatable="false">IdentID</string>
