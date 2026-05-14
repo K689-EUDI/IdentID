@@ -20,6 +20,7 @@ import com.k689.identid.R
 import com.k689.identid.controller.core.WalletCoreDocumentsController
 import com.k689.identid.extension.business.safeAsync
 import com.k689.identid.extension.common.toExpandableListItems
+import com.k689.identid.extension.core.localizedDocumentName
 import com.k689.identid.extension.core.localizedIssuerMetadata
 import com.k689.identid.extension.core.toClaimPaths
 import com.k689.identid.provider.UuidProvider
@@ -110,7 +111,7 @@ class DocumentIssuanceSuccessInteractorImpl(
                             header =
                                 ListItemDataUi(
                                     itemId = documentId,
-                                    mainContentData = ListItemMainContentDataUi.Text(text = document.name),
+                                    mainContentData = ListItemMainContentDataUi.Text(text = document.localizedDocumentName(userLocale)),
                                     supportingText = resourceProvider.getString(R.string.document_success_collapsed_supporting_text),
                                     trailingContentData =
                                         ListItemTrailingContentDataUi.Icon(

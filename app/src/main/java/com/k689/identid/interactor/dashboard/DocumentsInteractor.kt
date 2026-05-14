@@ -26,6 +26,7 @@ import com.k689.identid.extension.business.isExpired
 import com.k689.identid.extension.business.isValid
 import com.k689.identid.extension.business.isWithinNextDays
 import com.k689.identid.extension.business.safeAsync
+import com.k689.identid.extension.core.localizedDocumentName
 import com.k689.identid.extension.core.localizedIssuerMetadata
 import com.k689.identid.model.core.DeferredDocumentDataDomain
 import com.k689.identid.model.core.DocumentCategory
@@ -352,7 +353,7 @@ class DocumentsInteractorImpl(
                                             allCategories = documentCategories,
                                         )
 
-                                    val documentName = document.name
+                                    val documentName = document.localizedDocumentName(userLocale)
 
                                     val documentSearchTags =
                                         buildList {
@@ -489,7 +490,7 @@ class DocumentsInteractorImpl(
                                             allCategories = documentCategories,
                                         )
 
-                                    val documentName = document.name
+                                    val documentName = document.localizedDocumentName(userLocale)
 
                                     val documentSearchTags =
                                         buildList {
