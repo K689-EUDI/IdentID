@@ -66,7 +66,7 @@ class ThemeManager {
         val lightColorScheme = set.lightColors
         val darkColorScheme = set.darkColors
 
-        val colorScheme =
+        val baseColorScheme =
             when {
                 !disableDynamicTheming && dynamicThemeSupported && useDynamicColor -> {
                     val context = LocalContext.current
@@ -82,7 +82,6 @@ class ThemeManager {
                         seed = seedColor,
                         isDark = darkTheme,
                         base = if (darkTheme) darkColorScheme else lightColorScheme,
-                        isOledMode = isOledMode,
                         style = themeStyle,
                     )
                 }
@@ -96,6 +95,13 @@ class ThemeManager {
                 }
             }
 
+        val colorScheme =
+            if (darkTheme && isOledMode) {
+                baseColorScheme.applyOledMode()
+            } else {
+                baseColorScheme
+            }
+
         set = set.copy(isInDarkMode = darkTheme)
 
         MaterialTheme(
@@ -103,6 +109,18 @@ class ThemeManager {
             shapes = set.shapes,
             typography = set.typo,
             content = content,
+        )
+    }
+
+    private fun ColorScheme.applyOledMode(): ColorScheme {
+        return copy(
+            background = Color.Black,
+            surface = Color.Black,
+            surfaceContainerLowest = Color.Black,
+            surfaceContainerLow = Color(0xFF0D0D0D),
+            surfaceContainer = Color(0xFF141414),
+            surfaceContainerHigh = Color(0xFF1D1D1D),
+            surfaceContainerHighest = Color(0xFF282828),
         )
     }
 
@@ -268,7 +286,6 @@ class ThemeManager {
         seed: Color,
         isDark: Boolean,
         base: ColorScheme,
-        isOledMode: Boolean = false,
         style: ThemeStyle = ThemeStyle.TONAL,
     ): ColorScheme {
         val hsv = FloatArray(3)
@@ -318,8 +335,8 @@ class ThemeManager {
             val tertiaryContainer = fromHsv(tertiaryHue, (saturation * 0.45f * chromaMult).coerceIn(0f, 1f), 0.25f)
             val onTertiaryContainer = fromHsv(tertiaryHue, 0.15f, 0.85f)
 
-            val background = if (isOledMode) Color.Black else fromHsv(primaryHue, (saturation * 0.12f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.06f)
-            val surface = if (isOledMode) Color.Black else fromHsv(primaryHue, (saturation * 0.18f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.12f)
+            val background = fromHsv(primaryHue, (saturation * 0.12f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.06f)
+            val surface = fromHsv(primaryHue, (saturation * 0.18f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.12f)
 
             base.copy(
                 primary = primary,
@@ -341,11 +358,11 @@ class ThemeManager {
                 surfaceVariant = fromHsv(primaryHue, (saturation * 0.25f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.25f),
                 onSurfaceVariant = Color(0xFFC4C6D0),
                 outline = Color(0xFF8E9099),
-                surfaceContainerLowest = if (isOledMode) Color.Black else fromHsv(primaryHue, (saturation * 0.10f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.04f),
-                surfaceContainerLow = if (isOledMode) Color.Black else fromHsv(primaryHue, (saturation * 0.15f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.10f),
-                surfaceContainer = if (isOledMode) Color.Black else fromHsv(primaryHue, (saturation * 0.20f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.12f),
-                surfaceContainerHigh = if (isOledMode) Color.Black else fromHsv(primaryHue, (saturation * 0.25f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.17f),
-                surfaceContainerHighest = if (isOledMode) Color.Black else fromHsv(primaryHue, (saturation * 0.30f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.22f),
+                surfaceContainerLowest = fromHsv(primaryHue, (saturation * 0.10f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.04f),
+                surfaceContainerLow = fromHsv(primaryHue, (saturation * 0.15f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.10f),
+                surfaceContainer = fromHsv(primaryHue, (saturation * 0.20f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.12f),
+                surfaceContainerHigh = fromHsv(primaryHue, (saturation * 0.25f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.17f),
+                surfaceContainerHighest = fromHsv(primaryHue, (saturation * 0.30f * chromaMult * surfaceTintIntensity).coerceIn(0f, 1f), 0.22f),
             )
         } else {
             // Light Mode Tones (M3 Standard: 40 for Primary, 90 for Container, 10 for OnContainer)
