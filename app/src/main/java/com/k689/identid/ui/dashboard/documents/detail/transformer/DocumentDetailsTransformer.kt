@@ -18,6 +18,7 @@ package com.k689.identid.ui.dashboard.documents.detail.transformer
 
 import com.k689.identid.R
 import com.k689.identid.extension.common.toExpandableListItems
+import com.k689.identid.extension.core.localizedDocumentName
 import com.k689.identid.extension.core.toClaimPaths
 import com.k689.identid.model.core.toDocumentIdentifier
 import com.k689.identid.provider.UuidProvider
@@ -50,7 +51,7 @@ object DocumentDetailsTransformer {
                 )
 
             return@runCatching DocumentDetailsDomain(
-                docName = document.name,
+                docName = document.localizedDocumentName(resourceProvider.getLocale()),
                 docId = document.id,
                 documentIdentifier = document.toDocumentIdentifier(),
                 documentClaims = domainClaims,

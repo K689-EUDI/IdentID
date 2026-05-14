@@ -28,3 +28,9 @@ fun Document.localizedIssuerMetadata(locale: Locale): IssuerMetadata.IssuerDispl
         localeExtractor = { it.locale },
         valueExtractor = { it },
     )
+
+fun Document.localizedDocumentName(locale: Locale): String =
+    issuerMetadata.getLocalizedDocumentName(
+        userLocale = locale,
+        fallback = name,
+    )
