@@ -48,6 +48,8 @@ data class State(
 sealed class Event : ViewEvent {
     data object Pop : Event()
 
+    data object OnThemeCustomizationClicked : Event()
+
     data class OnThemeSelected(val theme: AppTheme) : Event()
 
     data class OnLanguageSelected(val language: AppLanguage) : Event()
@@ -68,6 +70,7 @@ sealed class Event : ViewEvent {
 sealed class Effect : ViewSideEffect {
     sealed class Navigation : Effect() {
         data object Pop : Navigation()
+        data object NavigateToThemeCustomization : Navigation()
     }
 }
 
@@ -93,6 +96,10 @@ class PreferencesViewModel(
         when (event) {
             is Event.Pop -> {
                 setEffect { Effect.Navigation.Pop }
+            }
+
+            is Event.OnThemeCustomizationClicked -> {
+                setEffect { Effect.Navigation.NavigateToThemeCustomization }
             }
 
             is Event.OnThemeSelected -> {

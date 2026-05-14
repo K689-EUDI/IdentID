@@ -333,6 +333,7 @@
     <string name="preferences_saturation_label">Saturation</string>
     <string name="preferences_value_label">Value</string>
     <string name="preferences_theme_preview_label">Theme Preview</string>
+    <string name="preferences_theme_customization_label">Theme Customization</string>
     <string name="theme_style_tonal">Tonal</string>
     <string name="theme_style_monochromatic">Monochromatic</string>
     <string name="theme_style_analogous">Analogous</string>

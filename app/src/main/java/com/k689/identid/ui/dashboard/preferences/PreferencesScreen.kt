@@ -16,51 +16,40 @@
 
 package com.k689.identid.ui.dashboard.preferences
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.k689.identid.R
+import com.k689.identid.navigation.DashboardScreens
 import com.k689.identid.theme.AppLanguage
 import com.k689.identid.theme.AppTheme
-import com.k689.identid.theme.ThemeStyle
 import com.k689.identid.ui.component.AppIcons
-import com.k689.identid.ui.component.ListItemDataUi
-import com.k689.identid.ui.component.ListItemMainContentDataUi
-import com.k689.identid.ui.component.ListItemTrailingContentDataUi
 import com.k689.identid.ui.component.SectionTitle
 import com.k689.identid.ui.component.content.ContentScreen
 import com.k689.identid.ui.component.content.ScreenNavigateAction
 import com.k689.identid.ui.component.content.ToolbarConfig
+import com.k689.identid.ui.component.preview.PreviewTheme
+import com.k689.identid.ui.component.preview.ThemeModePreviews
+import com.k689.identid.ui.component.utils.SPACING_LARGE
 import com.k689.identid.ui.component.utils.SPACING_MEDIUM
 import com.k689.identid.ui.component.utils.SPACING_SMALL
-import com.k689.identid.ui.component.utils.VSpacer
-import com.k689.identid.ui.component.wrap.SwitchDataUi
-import com.k689.identid.ui.component.wrap.WrapListItem
+import com.k689.identid.ui.component.wrap.WrapIcon
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
@@ -88,6 +77,9 @@ fun PreferencesScreen(
             .onEach { effect ->
                 when (effect) {
                     is Effect.Navigation.Pop -> navController.popBackStack()
+                    is Effect.Navigation.NavigateToThemeCustomization -> {
+                        navController.navigate(DashboardScreens.ThemeCustomization.screenRoute)
+                    }
                 }
             }.collect()
     }
@@ -101,18 +93,20 @@ private fun PreferencesContent(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = paddingValues,
+        contentPadding = PaddingValues(
+            top = paddingValues.calculateTopPadding() + SPACING_MEDIUM.dp,
+            bottom = paddingValues.calculateBottomPadding() + SPACING_MEDIUM.dp,
+        ),
     ) {
         item {
-            ThemePreviewSection()
+            ThemeSection(state, onEvent)
         }
 
         item {
-            ThemeModeSection(state, onEvent)
-        }
-
-        item {
-            ColorSection(state, onEvent)
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = SPACING_LARGE.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            )
         }
 
         item {
@@ -122,214 +116,78 @@ private fun PreferencesContent(
 }
 
 @Composable
-private fun ThemePreviewSection() {
-    SectionTitle(
-        modifier = Modifier.padding(bottom = SPACING_SMALL.dp),
-        text = stringResource(R.string.preferences_theme_preview_label),
-    )
-    ElevatedCard(
-        modifier = Modifier.padding(horizontal = SPACING_MEDIUM.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-    ) {
-        Column(
-            modifier = Modifier.padding(SPACING_MEDIUM.dp),
-            verticalArrangement = Arrangement.spacedBy(SPACING_SMALL.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
-                )
-                Column {
-                    Text(
-                        text = "Main Heading",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = "Secondary supporting text",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL.dp)) {
-                ElevatedCard(
-                    modifier = Modifier.weight(1f),
-                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                ) {
-                    Box(modifier = Modifier.padding(SPACING_SMALL.dp)) {
-                        Text(text = "Primary", color = MaterialTheme.colorScheme.onPrimaryContainer)
-                    }
-                }
-                ElevatedCard(
-                    modifier = Modifier.weight(1f),
-                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                ) {
-                    Box(modifier = Modifier.padding(SPACING_SMALL.dp)) {
-                        Text(text = "Secondary", color = MaterialTheme.colorScheme.onSecondaryContainer)
-                    }
-                }
-            }
-        }
-    }
-    VSpacer.Medium()
-}
-
-@Composable
-private fun ThemeModeSection(state: State, onEvent: (Event) -> Unit) {
-    SectionTitle(
-        modifier = Modifier.padding(bottom = SPACING_SMALL.dp),
-        text = stringResource(R.string.preferences_theme_label)
-    )
-    Column(modifier = Modifier.padding(horizontal = SPACING_MEDIUM.dp)) {
-        AppTheme.entries.forEach { theme ->
-            WrapListItem(
-                item = ListItemDataUi(
-                    itemId = theme.name,
-                    mainContentData = ListItemMainContentDataUi.Text(text = stringResource(theme.labelRes)),
-                    trailingContentData = if (state.selectedTheme == theme) {
-                        ListItemTrailingContentDataUi.Icon(iconData = AppIcons.Check)
-                    } else null,
-                ),
-                onItemClick = { onEvent(Event.OnThemeSelected(theme)) },
-            )
-        }
-
-        VSpacer.Small()
-
-        WrapListItem(
-            item = ListItemDataUi(
-                itemId = "oled_mode",
-                mainContentData = ListItemMainContentDataUi.Text(text = stringResource(R.string.preferences_oled_mode_label)),
-                trailingContentData = ListItemTrailingContentDataUi.Switch(
-                    switchData = SwitchDataUi(isChecked = state.isOledMode)
-                ),
-            ),
-            onItemClick = { onEvent(Event.OnOledModeChanged(!state.isOledMode)) },
-        )
-    }
-    VSpacer.Medium()
-}
-
-@Composable
-private fun ColorSection(state: State, onEvent: (Event) -> Unit) {
-    SectionTitle(
-        modifier = Modifier.padding(bottom = SPACING_SMALL.dp),
-        text = stringResource(R.string.preferences_seed_color_label)
-    )
-    Column(modifier = Modifier.padding(horizontal = SPACING_MEDIUM.dp)) {
-        WrapListItem(
-            item = ListItemDataUi(
-                itemId = "dynamic_color",
-                mainContentData = ListItemMainContentDataUi.Text(text = stringResource(R.string.preferences_dynamic_color_label)),
-                trailingContentData = ListItemTrailingContentDataUi.Switch(
-                    switchData = SwitchDataUi(isChecked = state.useDynamicColor)
-                ),
-            ),
-            onItemClick = { onEvent(Event.OnUseDynamicColorChanged(!state.useDynamicColor)) },
-        )
-
-        if (!state.useDynamicColor) {
-            VSpacer.Medium()
-            Text(
-                text = stringResource(R.string.preferences_color_style_label),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            VSpacer.Small()
-
-            ThemeStyle.entries.forEach { style ->
-                WrapListItem(
-                    item = ListItemDataUi(
-                        itemId = style.name,
-                        mainContentData = ListItemMainContentDataUi.Text(text = stringResource(style.labelRes)),
-                        trailingContentData = if (state.selectedThemeStyle == style) {
-                            ListItemTrailingContentDataUi.Icon(iconData = AppIcons.Check)
-                        } else null,
-                    ),
-                    onItemClick = { onEvent(Event.OnThemeStyleSelected(style)) },
-                )
-            }
-
-            VSpacer.Medium()
-            Text(
-                text = stringResource(R.string.preferences_color_tuning_label),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            VSpacer.Small()
-
-            TuningSlider(
-                label = stringResource(R.string.preferences_hue_label),
-                value = state.seedHue,
-                onValueChange = { onEvent(Event.OnHueChanged(it)) },
-                valueRange = 0f..360f,
-            )
-            TuningSlider(
-                label = stringResource(R.string.preferences_saturation_label),
-                value = state.seedSaturation,
-                onValueChange = { onEvent(Event.OnSaturationChanged(it)) },
-                valueRange = 0f..1f,
-            )
-            TuningSlider(
-                label = stringResource(R.string.preferences_value_label),
-                value = state.seedValue,
-                onValueChange = { onEvent(Event.OnValueChanged(it)) },
-                valueRange = 0f..1f,
-            )
-        }
-    }
-    VSpacer.Medium()
-}
-
-@Composable
-private fun TuningSlider(
-    label: String,
-    value: Float,
-    onValueChange: (Float) -> Unit,
-    valueRange: ClosedFloatingPointRange<Float>,
-) {
+private fun ThemeSection(state: State, onEvent: (Event) -> Unit) {
     Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        SectionTitle(
+            modifier = Modifier.padding(
+                start = SPACING_MEDIUM.dp,
+                end = SPACING_MEDIUM.dp,
+                bottom = SPACING_SMALL.dp,
+            ),
+            text = stringResource(R.string.preferences_theme_label),
         )
-        Slider(
-            value = value,
-            onValueChange = onValueChange,
-            valueRange = valueRange,
+        AppTheme.entries.forEach { theme ->
+            ListItem(
+                modifier = Modifier.clickable { onEvent(Event.OnThemeSelected(theme)) },
+                headlineContent = { Text(stringResource(theme.labelRes)) },
+                trailingContent = {
+                    if (state.selectedTheme == theme) {
+                        WrapIcon(iconData = AppIcons.Check, customTint = MaterialTheme.colorScheme.primary)
+                    }
+                },
+            )
+        }
+
+        ListItem(
+            modifier = Modifier.clickable { onEvent(Event.OnThemeCustomizationClicked) },
+            headlineContent = { Text(stringResource(R.string.preferences_theme_customization_label)) },
+            supportingContent = { Text("Colors, styles, and OLED mode") },
+            trailingContent = {
+                WrapIcon(
+                    iconData = AppIcons.KeyboardArrowRight,
+                    customTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
         )
     }
 }
 
 @Composable
 private fun LanguageSection(state: State, onEvent: (Event) -> Unit) {
-    SectionTitle(
-        modifier = Modifier.padding(bottom = SPACING_SMALL.dp),
-        text = stringResource(R.string.preferences_language_label)
-    )
-    Column(modifier = Modifier.padding(horizontal = SPACING_MEDIUM.dp)) {
+    Column {
+        SectionTitle(
+            modifier = Modifier.padding(
+                start = SPACING_MEDIUM.dp,
+                end = SPACING_MEDIUM.dp,
+                bottom = SPACING_SMALL.dp,
+            ),
+            text = stringResource(R.string.preferences_language_label),
+        )
         AppLanguage.entries.forEach { language ->
-            WrapListItem(
-                item = ListItemDataUi(
-                    itemId = language.name,
-                    mainContentData = ListItemMainContentDataUi.Text(text = language.displayName),
-                    trailingContentData = if (state.selectedLanguage == language) {
-                        ListItemTrailingContentDataUi.Icon(iconData = AppIcons.Check)
-                    } else null,
-                ),
-                onItemClick = { onEvent(Event.OnLanguageSelected(language)) },
+            ListItem(
+                modifier = Modifier.clickable { onEvent(Event.OnLanguageSelected(language)) },
+                headlineContent = { Text(language.displayName) },
+                trailingContent = {
+                    if (state.selectedLanguage == language) {
+                        WrapIcon(iconData = AppIcons.Check, customTint = MaterialTheme.colorScheme.primary)
+                    }
+                },
             )
         }
     }
-    VSpacer.Medium()
+}
+
+@ThemeModePreviews
+@Composable
+private fun PreferencesScreenPreview() {
+    PreviewTheme {
+        PreferencesContent(
+            state = State(
+                screenTitle = "Preferences",
+                useDynamicColor = false
+            ),
+            onEvent = {},
+            paddingValues = PaddingValues(0.dp)
+        )
+    }
 }

@@ -283,7 +283,7 @@ class ThemeManager {
 
         val toneSurface =
             if (isDark) {
-                if (isOledMode) Color.Black else Color(0xFF060606)
+                if (isOledMode) Color.Black else Color(0xFF1A1C1E) // Standard M3 Dark Surface (Tone 6-10)
             } else {
                 Color.White
             }
@@ -292,78 +292,84 @@ class ThemeManager {
         val primaryHue = hue
         val secondaryHue = when (style) {
             ThemeStyle.ANALOGOUS -> hue + 30f
-            ThemeStyle.VIBRANT -> hue + 60f
-            ThemeStyle.EXPRESSIVE -> hue + 120f
+            ThemeStyle.VIBRANT -> hue + 45f
+            ThemeStyle.EXPRESSIVE -> hue + 90f
             else -> hue
         }
         val tertiaryHue = when (style) {
             ThemeStyle.ANALOGOUS -> hue - 30f
-            ThemeStyle.VIBRANT -> hue + 180f
-            ThemeStyle.EXPRESSIVE -> hue + 240f
+            ThemeStyle.VIBRANT -> hue + 120f
+            ThemeStyle.EXPRESSIVE -> hue + 180f
             else -> hue + 60f
         }
 
-        val saturationMult = if (style == ThemeStyle.MONOCHROMATIC) 0.3f else 1f
+        val saturationMult = if (style == ThemeStyle.MONOCHROMATIC) 0.15f else 1f
+        val contrastEnhance = if (style == ThemeStyle.VIBRANT || style == ThemeStyle.EXPRESSIVE) 1.3f else 1f
 
         return if (isDark) {
-            val primary = fromHsv(primaryHue, saturation * 0.4f * saturationMult, 0.9f)
-            val primaryContainer = fromHsv(primaryHue, saturation * 0.8f * saturationMult, 0.3f)
-            val secondary = fromHsv(secondaryHue, saturation * 0.3f * saturationMult, 0.8f)
-            val secondaryContainer = fromHsv(secondaryHue, saturation * 0.6f * saturationMult, 0.2f)
-            val tertiary = fromHsv(tertiaryHue, saturation * 0.3f * saturationMult, 0.7f)
+            val primary = fromHsv(primaryHue, (saturation * 0.5f * saturationMult * contrastEnhance).coerceIn(0f, 1f), 0.95f)
+            val primaryContainer = fromHsv(primaryHue, (saturation * 0.4f * saturationMult).coerceIn(0f, 1f), 0.35f)
+            val secondary = fromHsv(secondaryHue, (saturation * 0.4f * saturationMult * contrastEnhance).coerceIn(0f, 1f), 0.9f)
+            val secondaryContainer = fromHsv(secondaryHue, (saturation * 0.3f * saturationMult).coerceIn(0f, 1f), 0.25f)
+            val tertiary = fromHsv(tertiaryHue, (saturation * 0.4f * saturationMult * contrastEnhance).coerceIn(0f, 1f), 0.85f)
+
+            // Tint surfaces with the selected primary hue to make styles more apparent
+            val surfaceSeed = fromHsv(primaryHue, (saturation * 0.08f * saturationMult).coerceIn(0f, 1f), if (isOledMode) 0f else 0.08f)
 
             base.copy(
                 primary = primary,
                 onPrimary = Color.Black,
                 primaryContainer = primaryContainer,
-                onPrimaryContainer = Color.White,
+                onPrimaryContainer = fromHsv(primaryHue, 0.1f, 0.95f),
                 secondary = secondary,
                 onSecondary = Color.Black,
                 secondaryContainer = secondaryContainer,
-                onSecondaryContainer = Color.White,
+                onSecondaryContainer = fromHsv(secondaryHue, 0.1f, 0.9f),
                 tertiary = tertiary,
-                surface = lerp(seed, toneSurface, if (isOledMode) 0.98f else 0.92f),
-                onSurface = Color.White,
-                background = lerp(seed, toneSurface, if (isOledMode) 1f else 0.95f),
-                onBackground = Color.White,
-                surfaceVariant = lerp(seed, Color(0xFF49454F), 0.6f),
-                onSurfaceVariant = Color(0xFFCAC4D0),
-                outline = lerp(seed, Color(0xFF938F99), 0.4f),
-                surfaceContainerLowest = lerp(seed, if (isOledMode) Color.Black else Color(0xFF0E0E0E), 0.94f),
-                surfaceContainerLow = lerp(seed, if (isOledMode) Color(0xFF040404) else Color(0xFF131313), 0.88f),
-                surfaceContainer = lerp(seed, if (isOledMode) Color(0xFF080808) else Color(0xFF1A1A1A), 0.82f),
-                surfaceContainerHigh = lerp(seed, if (isOledMode) Color(0xFF101010) else Color(0xFF242424), 0.78f),
-                surfaceContainerHighest = lerp(seed, if (isOledMode) Color(0xFF181818) else Color(0xFF2C2C2C), 0.74f),
+                surface = lerp(surfaceSeed, toneSurface, 0.5f),
+                onSurface = Color(0xFFE2E2E6),
+                background = if (isOledMode) Color.Black else lerp(surfaceSeed, toneSurface, 0.7f),
+                onBackground = Color(0xFFE2E2E6),
+                surfaceVariant = lerp(surfaceSeed, Color(0xFF44474E), 0.6f),
+                onSurfaceVariant = Color(0xFFC4C6D0),
+                outline = lerp(surfaceSeed, Color(0xFF8E9099), 0.4f),
+                surfaceContainerLowest = if (isOledMode) Color.Black else lerp(surfaceSeed, Color(0xFF0C0E11), 0.5f),
+                surfaceContainerLow = if (isOledMode) Color.Black else lerp(surfaceSeed, Color(0xFF1A1C1E), 0.5f),
+                surfaceContainer = if (isOledMode) Color.Black else lerp(surfaceSeed, Color(0xFF1E2023), 0.5f),
+                surfaceContainerHigh = if (isOledMode) Color.Black else lerp(surfaceSeed, Color(0xFF282A2E), 0.5f),
+                surfaceContainerHighest = if (isOledMode) Color.Black else lerp(surfaceSeed, Color(0xFF33353A), 0.5f),
             )
         } else {
-            val primary = fromHsv(primaryHue, saturation, value)
-            val primaryContainer = fromHsv(primaryHue, saturation * 0.2f, 0.95f)
-            val secondary = fromHsv(secondaryHue, saturation * 0.6f * saturationMult, value * 0.8f)
-            val secondaryContainer = fromHsv(secondaryHue, saturation * 0.15f * saturationMult, 0.97f)
-            val tertiary = fromHsv(tertiaryHue, saturation * 0.5f * saturationMult, value * 0.7f)
+            val primary = fromHsv(primaryHue, (saturation * 1.1f * saturationMult).coerceIn(0f, 1f), (value * 0.9f).coerceIn(0f, 1f))
+            val primaryContainer = fromHsv(primaryHue, (saturation * 0.25f * saturationMult).coerceIn(0f, 1f), 0.92f)
+            val secondary = fromHsv(secondaryHue, (saturation * 0.7f * saturationMult * contrastEnhance).coerceIn(0f, 1f), (value * 0.7f).coerceIn(0f, 1f))
+            val secondaryContainer = fromHsv(secondaryHue, (saturation * 0.2f * saturationMult).coerceIn(0f, 1f), 0.94f)
+            val tertiary = fromHsv(tertiaryHue, (saturation * 0.6f * saturationMult * contrastEnhance).coerceIn(0f, 1f), (value * 0.6f).coerceIn(0f, 1f))
+
+            val surfaceSeed = fromHsv(primaryHue, (saturation * 0.04f * saturationMult).coerceIn(0f, 1f), 0.98f)
 
             base.copy(
                 primary = primary,
                 onPrimary = if (primary.luminance() > 0.5f) Color.Black else Color.White,
                 primaryContainer = primaryContainer,
-                onPrimaryContainer = lerp(primary, Color.Black, 0.7f),
+                onPrimaryContainer = fromHsv(primaryHue, (saturation * 0.8f).coerceIn(0f, 1f), 0.2f),
                 secondary = secondary,
                 onSecondary = Color.White,
                 secondaryContainer = secondaryContainer,
-                onSecondaryContainer = lerp(secondary, Color.Black, 0.7f),
+                onSecondaryContainer = fromHsv(secondaryHue, (saturation * 0.8f).coerceIn(0f, 1f), 0.2f),
                 tertiary = tertiary,
-                surface = lerp(seed, Color.White, 0.96f),
-                onSurface = lerp(seed, Color.Black, 0.85f),
-                background = lerp(seed, Color.White, 0.96f),
-                onBackground = lerp(seed, Color.Black, 0.85f),
-                surfaceVariant = lerp(seed, Color(0xFFE7E0EC), 0.82f),
-                onSurfaceVariant = lerp(seed, Color.Black, 0.6f),
-                outline = lerp(seed, Color(0xFF79747E), 0.5f),
+                surface = lerp(surfaceSeed, Color.White, 0.4f),
+                onSurface = Color(0xFF1A1C1E),
+                background = lerp(surfaceSeed, Color.White, 0.6f),
+                onBackground = Color(0xFF1A1C1E),
+                surfaceVariant = lerp(surfaceSeed, Color(0xFFE1E2EC), 0.6f),
+                onSurfaceVariant = Color(0xFF44474E),
+                outline = lerp(surfaceSeed, Color(0xFF74777F), 0.5f),
                 surfaceContainerLowest = Color.White,
-                surfaceContainerLow = lerp(seed, Color.White, 0.92f),
-                surfaceContainer = lerp(seed, Color.White, 0.88f),
-                surfaceContainerHigh = lerp(seed, Color.White, 0.84f),
-                surfaceContainerHighest = lerp(seed, Color.White, 0.80f),
+                surfaceContainerLow = lerp(surfaceSeed, Color(0xFFF7F3FA), 0.5f),
+                surfaceContainer = lerp(surfaceSeed, Color(0xFFF1EEF7), 0.5f),
+                surfaceContainerHigh = lerp(surfaceSeed, Color(0xFFEBE8F1), 0.5f),
+                surfaceContainerHighest = lerp(surfaceSeed, Color(0xFFE5E2EB), 0.5f),
             )
         }
     }
