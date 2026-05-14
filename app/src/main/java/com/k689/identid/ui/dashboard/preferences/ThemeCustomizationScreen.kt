@@ -35,6 +35,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
@@ -45,11 +47,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,6 +61,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.k689.identid.R
 import com.k689.identid.theme.ThemeStyle
+import com.k689.identid.ui.component.AppIcons
 import com.k689.identid.ui.component.SectionTitle
 import com.k689.identid.ui.component.content.ContentScreen
 import com.k689.identid.ui.component.content.ScreenNavigateAction
@@ -67,6 +72,7 @@ import com.k689.identid.ui.component.utils.SPACING_LARGE
 import com.k689.identid.ui.component.utils.SPACING_MEDIUM
 import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.utils.VSpacer
+import com.k689.identid.ui.component.wrap.WrapIcon
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import java.util.Locale
@@ -122,7 +128,7 @@ private fun ThemeCustomizationContent(
         item {
             ListItem(
                 headlineContent = { Text(stringResource(R.string.preferences_dynamic_color_label)) },
-                supportingContent = { Text("Use system colors (Android 12+)") },
+                supportingContent = { Text(stringResource(R.string.preferences_dynamic_color_supporting_text)) },
                 trailingContent = {
                     Switch(
                         checked = state.useDynamicColor,
@@ -157,7 +163,7 @@ private fun ThemeCustomizationContent(
             )
             ListItem(
                 headlineContent = { Text(stringResource(R.string.preferences_oled_mode_label)) },
-                supportingContent = { Text("Pure black backgrounds") },
+                supportingContent = { Text(stringResource(R.string.preferences_oled_mode_supporting_text)) },
                 trailingContent = {
                     Switch(
                         checked = state.isOledMode,
@@ -206,7 +212,7 @@ private fun LargeThemePreview(state: State) {
 
                     // Mock App Bar
                     Text(
-                        text = "Design Preview",
+                        text = stringResource(R.string.preferences_design_preview_title),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
@@ -219,7 +225,7 @@ private fun LargeThemePreview(state: State) {
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text(text = "Primary Accent", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text(text = stringResource(R.string.preferences_design_preview_primary_accent), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
                             Box(modifier = Modifier.padding(top = 4.dp).size(60.dp, 8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f)))
                         }
                     }
@@ -232,7 +238,7 @@ private fun LargeThemePreview(state: State) {
                         ) {
                             Box(modifier = Modifier.padding(16.dp), contentAlignment = Alignment.CenterStart) {
                                 Column {
-                                    Text(text = "Secondary", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                                    Text(text = stringResource(R.string.preferences_design_preview_secondary), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
                                     Box(modifier = Modifier.padding(top = 4.dp).size(30.dp, 6.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.3f)))
                                 }
                             }
@@ -244,7 +250,7 @@ private fun LargeThemePreview(state: State) {
                         ) {
                             Box(modifier = Modifier.padding(16.dp), contentAlignment = Alignment.CenterStart) {
                                 Column {
-                                    Text(text = "Tertiary", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                                    Text(text = stringResource(R.string.preferences_design_preview_tertiary), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
                                     Box(modifier = Modifier.padding(top = 4.dp).size(30.dp, 6.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.3f)))
                                 }
                             }
@@ -274,68 +280,58 @@ private fun LargeThemePreview(state: State) {
 }
 
 @Composable
-private fun ColorStyleSelection(state: State, onEvent: (Event) -> Unit) {
+private fun ColorStyleSelection(
+    state: State,
+    onEvent: (Event) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
     Column {
         SectionTitle(
-            modifier = Modifier.padding(start = SPACING_MEDIUM.dp, end = SPACING_MEDIUM.dp, bottom = SPACING_SMALL.dp),
-            text = "Palette Style",
+            modifier = Modifier.padding(
+                start = SPACING_MEDIUM.dp,
+                end = SPACING_MEDIUM.dp,
+                bottom = SPACING_SMALL.dp,
+            ),
+            text = stringResource(R.string.preferences_palette_style_label),
         )
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = SPACING_MEDIUM.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            items(ThemeStyle.entries) { style ->
-                val isSelected = state.selectedThemeStyle == style
-                val primaryColor = MaterialTheme.colorScheme.primary
-                val secondaryColor = MaterialTheme.colorScheme.secondary
 
-                ElevatedCard(
-                    modifier = Modifier
-                        .size(110.dp, 130.dp)
-                        .clickable { onEvent(Event.OnThemeStyleSelected(style)) }
-                        .then(
-                            if (isSelected) Modifier.border(
-                                2.dp,
-                                MaterialTheme.colorScheme.primary,
-                                RoundedCornerShape(20.dp),
-                            ) else Modifier
-                        ),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceContainerLow
-                    ),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceBetween,
+        ListItem(
+            modifier = Modifier.clickable { expanded = true },
+            headlineContent = { Text(stringResource(state.selectedThemeStyle.labelRes)) },
+            supportingContent = { Text(stringResource(R.string.preferences_palette_style_label)) },
+            trailingContent = {
+                Row {
+                    WrapIcon(
+                        iconData = if (expanded) AppIcons.KeyboardArrowUp else AppIcons.KeyboardArrowDown,
+                        customTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
                     ) {
-                        // Visual indicator of the style
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(lerp(primaryColor, secondaryColor, 0.3f).copy(alpha = 0.1f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(horizontalArrangement = Arrangement.spacedBy((-8).dp)) {
-                                Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(primaryColor).border(2.dp, MaterialTheme.colorScheme.surface, CircleShape))
-                                Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(secondaryColor).border(2.dp, MaterialTheme.colorScheme.surface, CircleShape))
-                            }
+                        ThemeStyle.entries.forEach { style ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(style.labelRes)) },
+                                onClick = {
+                                    onEvent(Event.OnThemeStyleSelected(style))
+                                    expanded = false
+                                },
+                                trailingIcon = {
+                                    if (state.selectedThemeStyle == style) {
+                                        WrapIcon(
+                                            iconData = AppIcons.Check,
+                                            customTint = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                },
+                            )
                         }
-                        Text(
-                            text = stringResource(style.labelRes),
-                            style = MaterialTheme.typography.labelMedium,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
                     }
                 }
-            }
-        }
+            },
+        )
     }
 }
 
@@ -353,7 +349,7 @@ private fun PresetColorSelection(state: State, onEvent: (Event) -> Unit) {
     Column {
         SectionTitle(
             modifier = Modifier.padding(start = SPACING_MEDIUM.dp, end = SPACING_MEDIUM.dp, bottom = SPACING_SMALL.dp),
-            text = "Preset Colors",
+            text = stringResource(R.string.preferences_preset_colors_label),
         )
         LazyRow(
             contentPadding = PaddingValues(horizontal = SPACING_MEDIUM.dp),
@@ -391,7 +387,7 @@ private fun ColorTuningSelection(state: State, onEvent: (Event) -> Unit) {
     Column(modifier = Modifier.padding(horizontal = SPACING_MEDIUM.dp)) {
         SectionTitle(
             modifier = Modifier.padding(bottom = SPACING_SMALL.dp),
-            text = "Fine-tune Colors",
+            text = stringResource(R.string.preferences_fine_tune_colors_label),
         )
         ElevatedCard(
             colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -399,19 +395,19 @@ private fun ColorTuningSelection(state: State, onEvent: (Event) -> Unit) {
         ) {
             Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 TuningSlider(
-                    label = "Hue",
+                    label = stringResource(R.string.preferences_hue_label),
                     value = state.seedHue,
                     onValueChange = { onEvent(Event.OnHueChanged(it)) },
                     valueRange = 0f..360f,
                 )
                 TuningSlider(
-                    label = "Saturation",
+                    label = stringResource(R.string.preferences_saturation_label),
                     value = state.seedSaturation,
                     onValueChange = { onEvent(Event.OnSaturationChanged(it)) },
                     valueRange = 0f..1f,
                 )
                 TuningSlider(
-                    label = "Brightness",
+                    label = stringResource(R.string.preferences_brightness_label),
                     value = state.seedValue,
                     onValueChange = { onEvent(Event.OnValueChanged(it)) },
                     valueRange = 0f..1f,

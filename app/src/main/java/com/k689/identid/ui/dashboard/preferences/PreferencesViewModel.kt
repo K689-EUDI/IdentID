@@ -50,6 +50,12 @@ sealed class Event : ViewEvent {
 
     data object OnThemeCustomizationClicked : Event()
 
+    data object OnChangePinClicked : Event()
+
+    data object OnMoveWalletClicked : Event()
+
+    data object OnReceiveWalletClicked : Event()
+
     data class OnThemeSelected(val theme: AppTheme) : Event()
 
     data class OnLanguageSelected(val language: AppLanguage) : Event()
@@ -72,7 +78,14 @@ sealed class Event : ViewEvent {
 sealed class Effect : ViewSideEffect {
     sealed class Navigation : Effect() {
         data object Pop : Navigation()
+
         data object NavigateToThemeCustomization : Navigation()
+
+        data object NavigateToChangePin : Navigation()
+
+        data object NavigateToMoveWallet : Navigation()
+
+        data object NavigateToReceiveWallet : Navigation()
     }
 }
 
@@ -102,6 +115,18 @@ class PreferencesViewModel(
 
             is Event.OnThemeCustomizationClicked -> {
                 setEffect { Effect.Navigation.NavigateToThemeCustomization }
+            }
+
+            is Event.OnChangePinClicked -> {
+                setEffect { Effect.Navigation.NavigateToChangePin }
+            }
+
+            is Event.OnMoveWalletClicked -> {
+                setEffect { Effect.Navigation.NavigateToMoveWallet }
+            }
+
+            is Event.OnReceiveWalletClicked -> {
+                setEffect { Effect.Navigation.NavigateToReceiveWallet }
             }
 
             is Event.OnThemeSelected -> {

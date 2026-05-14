@@ -19,24 +19,34 @@ package com.k689.identid.ui.dashboard.preferences
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.k689.identid.R
+import com.k689.identid.model.common.PinFlow
+import com.k689.identid.navigation.CommonScreens
 import com.k689.identid.navigation.DashboardScreens
+import com.k689.identid.navigation.TransferScreens
+import com.k689.identid.navigation.helper.generateComposableArguments
+import com.k689.identid.navigation.helper.generateComposableNavigationLink
 import com.k689.identid.theme.AppLanguage
 import com.k689.identid.theme.AppTheme
 import com.k689.identid.ui.component.AppIcons
@@ -80,6 +90,26 @@ fun PreferencesScreen(
                     is Effect.Navigation.NavigateToThemeCustomization -> {
                         navController.navigate(DashboardScreens.ThemeCustomization.screenRoute)
                     }
+
+                    is Effect.Navigation.NavigateToChangePin -> {
+                        val nextScreenRoute =
+                            generateComposableNavigationLink(
+                                screen = CommonScreens.QuickPin,
+                                arguments =
+                                    generateComposableArguments(
+                                        mapOf("pinFlow" to PinFlow.UPDATE),
+                                    ),
+                            )
+                        navController.navigate(nextScreenRoute)
+                    }
+
+                    is Effect.Navigation.NavigateToMoveWallet -> {
+                        navController.navigate(TransferScreens.MoveWallet.screenRoute)
+                    }
+
+                    is Effect.Navigation.NavigateToReceiveWallet -> {
+                        navController.navigate(TransferScreens.ReceiveWallet.screenRoute)
+                    }
                 }
             }.collect()
     }
@@ -112,36 +142,79 @@ private fun PreferencesContent(
         item {
             LanguageSection(state, onEvent)
         }
+
+        item {
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = SPACING_LARGE.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            )
+        }
+
+        item {
+            WalletSection(onEvent)
+        }
     }
 }
 
 @Composable
-private fun ThemeSection(state: State, onEvent: (Event) -> Unit) {
+private fun ThemeSection(
+    state: State,
+    onEvent: (Event) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
     Column {
         SectionTitle(
-            modifier = Modifier.padding(
-                start = SPACING_MEDIUM.dp,
-                end = SPACING_MEDIUM.dp,
-                bottom = SPACING_SMALL.dp,
-            ),
+            modifier =
+                Modifier.padding(
+                    start = SPACING_MEDIUM.dp,
+                    end = SPACING_MEDIUM.dp,
+                    bottom = SPACING_SMALL.dp,
+                ),
             text = stringResource(R.string.preferences_theme_label),
         )
-        AppTheme.entries.forEach { theme ->
-            ListItem(
-                modifier = Modifier.clickable { onEvent(Event.OnThemeSelected(theme)) },
-                headlineContent = { Text(stringResource(theme.labelRes)) },
-                trailingContent = {
-                    if (state.selectedTheme == theme) {
-                        WrapIcon(iconData = AppIcons.Check, customTint = MaterialTheme.colorScheme.primary)
+
+        ListItem(
+            modifier = Modifier.clickable { expanded = true },
+            headlineContent = { Text(stringResource(state.selectedTheme.labelRes)) },
+            supportingContent = { Text(stringResource(R.string.preferences_theme_label)) },
+            trailingContent = {
+                Row {
+                    WrapIcon(
+                        iconData = if (expanded) AppIcons.KeyboardArrowUp else AppIcons.KeyboardArrowDown,
+                        customTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                    ) {
+                        AppTheme.entries.forEach { theme ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(theme.labelRes)) },
+                                onClick = {
+                                    onEvent(Event.OnThemeSelected(theme))
+                                    expanded = false
+                                },
+                                trailingIcon = {
+                                    if (state.selectedTheme == theme) {
+                                        WrapIcon(
+                                            iconData = AppIcons.Check,
+                                            customTint = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                },
+                            )
+                        }
                     }
-                },
-            )
-        }
+                }
+            },
+        )
 
         ListItem(
             modifier = Modifier.clickable { onEvent(Event.OnThemeCustomizationClicked) },
             headlineContent = { Text(stringResource(R.string.preferences_theme_customization_label)) },
-            supportingContent = { Text("Colors, styles, and OLED mode") },
+            supportingContent = { Text(stringResource(R.string.preferences_theme_customization_supporting_text)) },
             trailingContent = {
                 WrapIcon(
                     iconData = AppIcons.KeyboardArrowRight,
@@ -153,27 +226,107 @@ private fun ThemeSection(state: State, onEvent: (Event) -> Unit) {
 }
 
 @Composable
-private fun LanguageSection(state: State, onEvent: (Event) -> Unit) {
+private fun LanguageSection(
+    state: State,
+    onEvent: (Event) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
     Column {
         SectionTitle(
-            modifier = Modifier.padding(
-                start = SPACING_MEDIUM.dp,
-                end = SPACING_MEDIUM.dp,
-                bottom = SPACING_SMALL.dp,
-            ),
+            modifier =
+                Modifier.padding(
+                    start = SPACING_MEDIUM.dp,
+                    end = SPACING_MEDIUM.dp,
+                    bottom = SPACING_SMALL.dp,
+                ),
             text = stringResource(R.string.preferences_language_label),
         )
-        AppLanguage.entries.forEach { language ->
-            ListItem(
-                modifier = Modifier.clickable { onEvent(Event.OnLanguageSelected(language)) },
-                headlineContent = { Text(language.displayName) },
-                trailingContent = {
-                    if (state.selectedLanguage == language) {
-                        WrapIcon(iconData = AppIcons.Check, customTint = MaterialTheme.colorScheme.primary)
+
+        ListItem(
+            modifier = Modifier.clickable { expanded = true },
+            headlineContent = { Text(stringResource(state.selectedLanguage.labelRes)) },
+            supportingContent = { Text(stringResource(R.string.preferences_language_label)) },
+            trailingContent = {
+                Row {
+                    WrapIcon(
+                        iconData = if (expanded) AppIcons.KeyboardArrowUp else AppIcons.KeyboardArrowDown,
+                        customTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                    ) {
+                        AppLanguage.entries.forEach { language ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(language.labelRes)) },
+                                onClick = {
+                                    onEvent(Event.OnLanguageSelected(language))
+                                    expanded = false
+                                },
+                                trailingIcon = {
+                                    if (state.selectedLanguage == language) {
+                                        WrapIcon(
+                                            iconData = AppIcons.Check,
+                                            customTint = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                },
+                            )
+                        }
                     }
-                },
-            )
-        }
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun WalletSection(onEvent: (Event) -> Unit) {
+    Column {
+        SectionTitle(
+            modifier =
+                Modifier.padding(
+                    start = SPACING_MEDIUM.dp,
+                    end = SPACING_MEDIUM.dp,
+                    bottom = SPACING_SMALL.dp,
+                ),
+            text = stringResource(R.string.preferences_wallet_section_label),
+        )
+
+        ListItem(
+            modifier = Modifier.clickable { onEvent(Event.OnChangePinClicked) },
+            headlineContent = { Text(stringResource(R.string.preferences_change_pin_label)) },
+            trailingContent = {
+                WrapIcon(
+                    iconData = AppIcons.KeyboardArrowRight,
+                    customTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+        )
+
+        ListItem(
+            modifier = Modifier.clickable { onEvent(Event.OnMoveWalletClicked) },
+            headlineContent = { Text(stringResource(R.string.preferences_move_wallet_label)) },
+            trailingContent = {
+                WrapIcon(
+                    iconData = AppIcons.KeyboardArrowRight,
+                    customTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+        )
+
+        ListItem(
+            modifier = Modifier.clickable { onEvent(Event.OnReceiveWalletClicked) },
+            headlineContent = { Text(stringResource(R.string.preferences_receive_wallet_label)) },
+            trailingContent = {
+                WrapIcon(
+                    iconData = AppIcons.KeyboardArrowRight,
+                    customTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+        )
     }
 }
 
