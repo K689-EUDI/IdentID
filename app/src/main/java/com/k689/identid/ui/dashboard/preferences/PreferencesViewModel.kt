@@ -65,6 +65,8 @@ sealed class Event : ViewEvent {
     data class OnOledModeChanged(val enabled: Boolean) : Event()
 
     data class OnUseDynamicColorChanged(val enabled: Boolean) : Event()
+
+    data class OnPresetColorSelected(val hue: Float, val saturation: Float, val value: Float) : Event()
 }
 
 sealed class Effect : ViewSideEffect {
@@ -145,6 +147,20 @@ class PreferencesViewModel(
             is Event.OnUseDynamicColorChanged -> {
                 prefKeys.setUseDynamicColor(event.enabled)
                 setState { copy(useDynamicColor = event.enabled) }
+            }
+
+            is Event.OnPresetColorSelected -> {
+                prefKeys.setSeedHue(event.hue)
+                prefKeys.setSeedSaturation(event.saturation)
+                prefKeys.setSeedValue(event.value)
+                setState {
+                    copy(
+                        seedHue = event.hue,
+                        seedSaturation = event.saturation,
+                        seedValue = event.value,
+                    )
+                }
+                updateSeedColor()
             }
         }
     }

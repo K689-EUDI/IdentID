@@ -48,6 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -135,6 +136,11 @@ private fun ThemeCustomizationContent(
             item {
                 VSpacer.Medium()
                 ColorStyleSelection(state, onEvent)
+            }
+
+            item {
+                VSpacer.Medium()
+                PresetColorSelection(state, onEvent)
             }
 
             item {
@@ -334,6 +340,53 @@ private fun ColorStyleSelection(state: State, onEvent: (Event) -> Unit) {
 }
 
 @Composable
+private fun PresetColorSelection(state: State, onEvent: (Event) -> Unit) {
+    val presets = listOf(
+        PresetColor(225f, 0.8f, 0.85f), // Blue
+        PresetColor(150f, 0.7f, 0.8f),  // Green
+        PresetColor(280f, 0.65f, 0.85f), // Purple
+        PresetColor(30f, 0.85f, 0.95f),  // Orange
+        PresetColor(0f, 0.75f, 0.9f),    // Red
+        PresetColor(330f, 0.7f, 0.9f)    // Pink
+    )
+
+    Column {
+        SectionTitle(
+            modifier = Modifier.padding(start = SPACING_MEDIUM.dp, end = SPACING_MEDIUM.dp, bottom = SPACING_SMALL.dp),
+            text = "Preset Colors",
+        )
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = SPACING_MEDIUM.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            items(presets) { preset ->
+                val presetColor = Color(android.graphics.Color.HSVToColor(floatArrayOf(preset.hue, preset.saturation, preset.value)))
+                val isSelected = (state.seedHue - preset.hue).let { it * it } < 1f &&
+                        (state.seedSaturation - preset.saturation).let { it * it } < 0.001f &&
+                        (state.seedValue - preset.value).let { it * it } < 0.001f
+
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(presetColor)
+                        .clickable { onEvent(Event.OnPresetColorSelected(preset.hue, preset.saturation, preset.value)) }
+                        .then(
+                            if (isSelected) Modifier.border(
+                                3.dp,
+                                MaterialTheme.colorScheme.onSurface,
+                                CircleShape
+                            ) else Modifier
+                        )
+                )
+            }
+        }
+    }
+}
+
+private data class PresetColor(val hue: Float, val saturation: Float, val value: Float)
+
+@Composable
 private fun ColorTuningSelection(state: State, onEvent: (Event) -> Unit) {
     Column(modifier = Modifier.padding(horizontal = SPACING_MEDIUM.dp)) {
         SectionTitle(
@@ -400,6 +453,10 @@ private fun ThemeCustomizationScreenPreview() {
             state = State(
                 screenTitle = "Customize",
                 useDynamicColor = false,
+                selectedThemeStyle = ThemeStyle.EXPRESSIVE,
+                seedHue = 0f, // Red
+                seedSaturation = 0.8f,
+                seedValue = 0.9f
             ),
             onEvent = {},
             paddingValues = PaddingValues(0.dp),
