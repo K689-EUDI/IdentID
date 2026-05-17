@@ -28,12 +28,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -61,8 +64,11 @@ import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.utils.screenWidthInDp
 import com.k689.identid.ui.component.wrap.WrapImage
 import com.k689.identid.ui.proximity.qr.component.rememberQrBitmapPainter
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -73,25 +79,41 @@ internal fun AuthenticateScreen(
     val state by viewModel.viewState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
-        viewModel.setEvent(Event.Init)
-    }
+    val nearbyDevicesPermissions =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            listOf(
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_ADVERTISE,
+                Manifest.permission.BLUETOOTH_CONNECT,
+            )
+        } else {
+            listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            )
+        }
 
     val permissionsState =
-        rememberMultiplePermissionsState(
-            permissions =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    listOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE)
-                } else {
-                    emptyList() // Legacy BT doesn't need runtime connect permission
-                },
-        )
+        rememberMultiplePermissionsState(permissions = nearbyDevicesPermissions) { results ->
+            viewModel.setEvent(Event.PermissionsResult(results.values.all { it }))
+        }
 
-    DisposableEffect(context, permissionsState.allPermissionsGranted) {
+    if (state.showPermissionConfirmation) {
+        PermissionConfirmationDialog(
+            onConfirm = { viewModel.setEvent(Event.RequestPermissions) },
+            onDismiss = { viewModel.setEvent(Event.GoBack) },
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.setEvent(Event.Init(permissionsState.allPermissionsGranted))
+    }
+
+    DisposableEffect(context, state.permissionsGranted) {
         val activity = context as? ComponentActivity
 
         // ONLY start NFC engagement if permissions are granted
-        if (permissionsState.allPermissionsGranted && activity != null) {
+        if (state.permissionsGranted && activity != null) {
             viewModel.setEvent(Event.NfcEngagement(activity, true))
         }
 
@@ -99,12 +121,6 @@ internal fun AuthenticateScreen(
             activity?.let {
                 viewModel.setEvent(Event.NfcEngagement(it, false))
             }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        if (!permissionsState.allPermissionsGranted) {
-            permissionsState.launchMultiplePermissionRequest()
         }
     }
 
@@ -135,6 +151,10 @@ internal fun AuthenticateScreen(
 
                     is Effect.Navigation.Pop -> {
                         navController.popBackStack()
+                    }
+
+                    is Effect.Permission.RequestNearbyDevices -> {
+                        permissionsState.launchMultiplePermissionRequest()
                     }
                 }
             }.collect()
@@ -241,6 +261,38 @@ private fun QRCode(
             contentDescription = stringResource(id = R.string.content_description_qr_code_icon),
         )
     }
+}
+
+@Composable
+private fun PermissionConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.proximity_permissions_title),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(R.string.proximity_permissions_description),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.generic_continue))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.generic_cancel))
+            }
+        },
+    )
 }
 
 @ThemeModePreviews

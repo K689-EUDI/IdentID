@@ -46,14 +46,20 @@ data class State(
     val isLoading: Boolean = true,
     val error: ContentErrorConfig? = null,
     val qrCode: String = "",
+    val showPermissionConfirmation: Boolean = false,
+    val permissionsGranted: Boolean = false,
 ) : ViewState
 
 sealed class Event : ViewEvent {
-    data object Init : Event()
+    data class Init(val permissionsGranted: Boolean) : Event()
 
     data object GoBack : Event()
 
     data object OpenScanQr : Event()
+
+    data object RequestPermissions : Event()
+
+    data class PermissionsResult(val granted: Boolean) : Event()
 
     data class NfcEngagement(
         val componentActivity: ComponentActivity,
@@ -68,6 +74,10 @@ sealed class Effect : ViewSideEffect {
         ) : Navigation()
 
         data object Pop : Navigation()
+    }
+
+    sealed class Permission : Effect() {
+        data object RequestNearbyDevices : Permission()
     }
 }
 
@@ -84,9 +94,40 @@ class AuthenticateViewModel(
     override fun handleEvents(event: Event) {
         when (event) {
             is Event.Init -> {
+                setState { copy(permissionsGranted = event.permissionsGranted) }
                 if (interactor == null) {
+                    if (event.permissionsGranted) {
+                        initializeConfig()
+                        generateQrCode()
+                    } else {
+                        setState { copy(isLoading = false, showPermissionConfirmation = true, error = null) }
+                    }
+                }
+            }
+
+            is Event.RequestPermissions -> {
+                setState { copy(showPermissionConfirmation = false) }
+                setEffect { Effect.Permission.RequestNearbyDevices }
+            }
+
+            is Event.PermissionsResult -> {
+                if (event.granted) {
+                    setState { copy(permissionsGranted = true, showPermissionConfirmation = false) }
                     initializeConfig()
                     generateQrCode()
+                } else {
+                    setState {
+                        copy(
+                            isLoading = false,
+                            showPermissionConfirmation = false,
+                            error =
+                                ContentErrorConfig(
+                                    onRetry = { setEvent(Event.Init(viewState.value.permissionsGranted)) },
+                                    errorSubTitle = resourceProvider.getString(R.string.proximity_permissions_denied_error),
+                                    onCancel = { setEvent(Event.GoBack) },
+                                ),
+                        )
+                    }
                 }
             }
 
@@ -154,7 +195,7 @@ class AuthenticateViewModel(
                                     isLoading = false,
                                     error =
                                         ContentErrorConfig(
-                                            onRetry = { setEvent(Event.Init) },
+                                            onRetry = { setEvent(Event.Init(viewState.value.permissionsGranted)) },
                                             errorSubTitle = response.error,
                                             onCancel = { setEvent(Event.GoBack) },
                                         ),
