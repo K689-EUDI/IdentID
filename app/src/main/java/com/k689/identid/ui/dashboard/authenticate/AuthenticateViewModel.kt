@@ -46,18 +46,20 @@ data class State(
     val isLoading: Boolean = true,
     val error: ContentErrorConfig? = null,
     val qrCode: String = "",
-    val showPermissionConfirmation: Boolean = false,
     val permissionsGranted: Boolean = false,
 ) : ViewState
 
 sealed class Event : ViewEvent {
-    data class Init(val permissionsGranted: Boolean) : Event()
+    data class Init(
+        val permissionsGranted: Boolean,
+        val shouldShowRationale: Boolean,
+    ) : Event()
 
     data object GoBack : Event()
 
-    data object OpenScanQr : Event()
+    data object GoToAppSettings : Event()
 
-    data object RequestPermissions : Event()
+    data object OpenScanQr : Event()
 
     data class PermissionsResult(val granted: Boolean) : Event()
 
@@ -78,6 +80,8 @@ sealed class Effect : ViewSideEffect {
 
     sealed class Permission : Effect() {
         data object RequestNearbyDevices : Permission()
+
+        data object GoToAppSettings : Permission()
     }
 }
 
@@ -99,30 +103,37 @@ class AuthenticateViewModel(
                     if (event.permissionsGranted) {
                         initializeConfig()
                         generateQrCode()
+                    } else if (event.shouldShowRationale) {
+                        setState {
+                            copy(
+                                isLoading = false,
+                                error =
+                                    ContentErrorConfig(
+                                        onRetry = { setEffect { Effect.Permission.RequestNearbyDevices } },
+                                        errorSubTitle = resourceProvider.getString(R.string.proximity_permissions_denied_error),
+                                        onCancel = { setEvent(Event.GoBack) },
+                                    ),
+                            )
+                        }
                     } else {
-                        setState { copy(isLoading = false, showPermissionConfirmation = true, error = null) }
+                        setState { copy(isLoading = true, error = null) }
+                        setEffect { Effect.Permission.RequestNearbyDevices }
                     }
                 }
             }
 
-            is Event.RequestPermissions -> {
-                setState { copy(showPermissionConfirmation = false) }
-                setEffect { Effect.Permission.RequestNearbyDevices }
-            }
-
             is Event.PermissionsResult -> {
                 if (event.granted) {
-                    setState { copy(permissionsGranted = true, showPermissionConfirmation = false) }
+                    setState { copy(permissionsGranted = true) }
                     initializeConfig()
                     generateQrCode()
                 } else {
                     setState {
                         copy(
                             isLoading = false,
-                            showPermissionConfirmation = false,
                             error =
                                 ContentErrorConfig(
-                                    onRetry = { setEvent(Event.Init(viewState.value.permissionsGranted)) },
+                                    onRetry = { setEffect { Effect.Permission.RequestNearbyDevices } },
                                     errorSubTitle = resourceProvider.getString(R.string.proximity_permissions_denied_error),
                                     onCancel = { setEvent(Event.GoBack) },
                                 ),
@@ -135,6 +146,10 @@ class AuthenticateViewModel(
                 cleanUp()
                 setState { copy(error = null) }
                 setEffect { Effect.Navigation.Pop }
+            }
+
+            is Event.GoToAppSettings -> {
+                setEffect { Effect.Permission.GoToAppSettings }
             }
 
             is Event.OpenScanQr -> {
@@ -195,7 +210,7 @@ class AuthenticateViewModel(
                                     isLoading = false,
                                     error =
                                         ContentErrorConfig(
-                                            onRetry = { setEvent(Event.Init(viewState.value.permissionsGranted)) },
+                                            onRetry = { setEffect { Effect.Permission.RequestNearbyDevices } },
                                             errorSubTitle = response.error,
                                             onCancel = { setEvent(Event.GoBack) },
                                         ),

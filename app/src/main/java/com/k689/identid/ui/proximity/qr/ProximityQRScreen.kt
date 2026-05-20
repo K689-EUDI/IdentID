@@ -51,7 +51,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.k689.identid.R
+import com.k689.identid.extension.ui.openAppSettings
 import com.k689.identid.extension.ui.paddingFrom
 import com.k689.identid.navigation.ProximityScreens
 import com.k689.identid.ui.component.AppIcons
@@ -62,6 +64,9 @@ import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
 import com.k689.identid.ui.component.utils.LifecycleEffect
 import com.k689.identid.ui.component.utils.OneTimeLaunchedEffect
+import com.k689.identid.ui.component.utils.LifecycleEffect
+import com.k689.identid.ui.component.utils.OneTimeLaunchedEffect
+import com.k689.identid.ui.component.utils.PermissionUtils
 import com.k689.identid.ui.component.utils.SPACING_MEDIUM
 import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.utils.screenWidthInDp
@@ -82,31 +87,13 @@ fun ProximityQRScreen(
     val state: State by viewModel.viewState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    val nearbyDevicesPermissions =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            listOf(
-                android.Manifest.permission.BLUETOOTH_SCAN,
-                android.Manifest.permission.BLUETOOTH_ADVERTISE,
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-            )
-        } else {
-            listOf(
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION,
-            )
-        }
+    val nearbyDevicesPermissions = PermissionUtils.nearbyDevicesPermissions
 
     val permissionState =
         rememberMultiplePermissionsState(permissions = nearbyDevicesPermissions) { results ->
             viewModel.setEvent(Event.PermissionsResult(results.values.all { it }))
         }
 
-    if (state.showPermissionConfirmation) {
-        PermissionConfirmationDialog(
-            onConfirm = { viewModel.setEvent(Event.RequestPermissions) },
-            onDismiss = { viewModel.setEvent(Event.GoBack) },
-        )
-    }
 
     ContentScreen(
         isLoading = state.isLoading,
@@ -139,12 +126,21 @@ fun ProximityQRScreen(
                     is Effect.Permission.RequestNearbyDevices -> {
                         permissionState.launchMultiplePermissionRequest()
                     }
+
+                    is Effect.Permission.GoToAppSettings -> {
+                        context.openAppSettings()
+                    }
                 }
             }.collect()
     }
 
     OneTimeLaunchedEffect {
-        viewModel.setEvent(Event.Init(permissionState.allPermissionsGranted))
+        viewModel.setEvent(
+            Event.Init(
+                permissionsGranted = permissionState.allPermissionsGranted,
+                shouldShowRationale = permissionState.shouldShowRationale,
+            ),
+        )
     }
 
     LifecycleEffect(
@@ -208,37 +204,6 @@ private fun Content(
     }
 }
 
-@Composable
-private fun PermissionConfirmationDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(R.string.proximity_permissions_title),
-                style = MaterialTheme.typography.headlineSmall,
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(R.string.proximity_permissions_description),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(stringResource(R.string.generic_continue))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.generic_cancel))
-            }
-        },
-    )
-}
 
 @Composable
 private fun SimplifiedNFCFooter(paddingValues: PaddingValues) {

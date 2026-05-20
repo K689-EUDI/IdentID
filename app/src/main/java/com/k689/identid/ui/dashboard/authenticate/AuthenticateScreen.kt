@@ -49,7 +49,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.k689.identid.R
+import com.k689.identid.extension.ui.openAppSettings
 import com.k689.identid.ui.component.AppIcons
 import com.k689.identid.ui.component.LargeActionFooter
 import com.k689.identid.ui.component.content.ContentScreen
@@ -62,6 +64,7 @@ import com.k689.identid.ui.component.utils.SPACING_EXTRA_SMALL
 import com.k689.identid.ui.component.utils.SPACING_MEDIUM
 import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.utils.screenWidthInDp
+import com.k689.identid.ui.component.utils.PermissionUtils
 import com.k689.identid.ui.component.wrap.WrapImage
 import com.k689.identid.ui.proximity.qr.component.rememberQrBitmapPainter
 import kotlinx.coroutines.channels.Channel
@@ -79,34 +82,21 @@ internal fun AuthenticateScreen(
     val state by viewModel.viewState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    val nearbyDevicesPermissions =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            listOf(
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_ADVERTISE,
-                Manifest.permission.BLUETOOTH_CONNECT,
-            )
-        } else {
-            listOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-            )
-        }
+    val nearbyDevicesPermissions = PermissionUtils.nearbyDevicesPermissions
 
     val permissionsState =
         rememberMultiplePermissionsState(permissions = nearbyDevicesPermissions) { results ->
             viewModel.setEvent(Event.PermissionsResult(results.values.all { it }))
         }
 
-    if (state.showPermissionConfirmation) {
-        PermissionConfirmationDialog(
-            onConfirm = { viewModel.setEvent(Event.RequestPermissions) },
-            onDismiss = { viewModel.setEvent(Event.GoBack) },
-        )
-    }
 
     LaunchedEffect(Unit) {
-        viewModel.setEvent(Event.Init(permissionsState.allPermissionsGranted))
+        viewModel.setEvent(
+            Event.Init(
+                permissionsGranted = permissionsState.allPermissionsGranted,
+                shouldShowRationale = permissionsState.shouldShowRationale,
+            ),
+        )
     }
 
     DisposableEffect(context, state.permissionsGranted) {
@@ -155,6 +145,10 @@ internal fun AuthenticateScreen(
 
                     is Effect.Permission.RequestNearbyDevices -> {
                         permissionsState.launchMultiplePermissionRequest()
+                    }
+
+                    is Effect.Permission.GoToAppSettings -> {
+                        context.openAppSettings()
                     }
                 }
             }.collect()
@@ -263,37 +257,6 @@ private fun QRCode(
     }
 }
 
-@Composable
-private fun PermissionConfirmationDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(R.string.proximity_permissions_title),
-                style = MaterialTheme.typography.headlineSmall,
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(R.string.proximity_permissions_description),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(stringResource(R.string.generic_continue))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.generic_cancel))
-            }
-        },
-    )
-}
 
 @ThemeModePreviews
 @Composable
