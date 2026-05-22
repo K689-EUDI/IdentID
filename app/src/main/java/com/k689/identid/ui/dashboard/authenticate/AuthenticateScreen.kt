@@ -16,8 +16,6 @@
 
 package com.k689.identid.ui.dashboard.authenticate
 
-import android.Manifest
-import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,16 +45,16 @@ import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.k689.identid.R
+import com.k689.identid.extension.ui.openAppSettings
 import com.k689.identid.ui.component.AppIcons
 import com.k689.identid.ui.component.LargeActionFooter
 import com.k689.identid.ui.component.content.ContentScreen
-import com.k689.identid.ui.component.content.ContentTitle
 import com.k689.identid.ui.component.content.ScreenNavigateAction
 import com.k689.identid.ui.component.content.ToolbarConfig
 import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
+import com.k689.identid.ui.component.utils.PermissionUtils
 import com.k689.identid.ui.component.utils.SPACING_EXTRA_SMALL
-import com.k689.identid.ui.component.utils.SPACING_MEDIUM
 import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.utils.screenWidthInDp
 import com.k689.identid.ui.component.wrap.WrapImage
@@ -73,25 +71,27 @@ internal fun AuthenticateScreen(
     val state by viewModel.viewState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
-        viewModel.setEvent(Event.Init)
-    }
+    val nearbyDevicesPermissions = PermissionUtils.nearbyDevicesPermissions
 
     val permissionsState =
-        rememberMultiplePermissionsState(
-            permissions =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    listOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE)
-                } else {
-                    emptyList() // Legacy BT doesn't need runtime connect permission
-                },
-        )
+        rememberMultiplePermissionsState(permissions = nearbyDevicesPermissions) { results ->
+            viewModel.setEvent(Event.PermissionsResult(results.values.all { it }))
+        }
 
-    DisposableEffect(context, permissionsState.allPermissionsGranted) {
+    LaunchedEffect(Unit) {
+        viewModel.setEvent(
+            Event.Init(
+                permissionsGranted = permissionsState.allPermissionsGranted,
+                shouldShowRationale = permissionsState.shouldShowRationale,
+            ),
+        )
+    }
+
+    DisposableEffect(context, state.permissionsGranted) {
         val activity = context as? ComponentActivity
 
         // ONLY start NFC engagement if permissions are granted
-        if (permissionsState.allPermissionsGranted && activity != null) {
+        if (state.permissionsGranted && activity != null) {
             viewModel.setEvent(Event.NfcEngagement(activity, true))
         }
 
@@ -99,12 +99,6 @@ internal fun AuthenticateScreen(
             activity?.let {
                 viewModel.setEvent(Event.NfcEngagement(it, false))
             }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        if (!permissionsState.allPermissionsGranted) {
-            permissionsState.launchMultiplePermissionRequest()
         }
     }
 
@@ -135,6 +129,14 @@ internal fun AuthenticateScreen(
 
                     is Effect.Navigation.Pop -> {
                         navController.popBackStack()
+                    }
+
+                    is Effect.Permission.RequestNearbyDevices -> {
+                        permissionsState.launchMultiplePermissionRequest()
+                    }
+
+                    is Effect.Permission.GoToAppSettings -> {
+                        context.openAppSettings()
                     }
                 }
             }.collect()

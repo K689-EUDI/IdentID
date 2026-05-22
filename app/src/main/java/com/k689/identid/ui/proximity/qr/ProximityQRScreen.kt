@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -43,7 +42,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.k689.identid.R
+import com.k689.identid.extension.ui.openAppSettings
 import com.k689.identid.extension.ui.paddingFrom
 import com.k689.identid.navigation.ProximityScreens
 import com.k689.identid.ui.component.AppIcons
@@ -54,17 +56,16 @@ import com.k689.identid.ui.component.preview.PreviewTheme
 import com.k689.identid.ui.component.preview.ThemeModePreviews
 import com.k689.identid.ui.component.utils.LifecycleEffect
 import com.k689.identid.ui.component.utils.OneTimeLaunchedEffect
+import com.k689.identid.ui.component.utils.PermissionUtils
 import com.k689.identid.ui.component.utils.SPACING_MEDIUM
 import com.k689.identid.ui.component.utils.SPACING_SMALL
 import com.k689.identid.ui.component.utils.screenWidthInDp
 import com.k689.identid.ui.component.wrap.WrapImage
 import com.k689.identid.ui.proximity.qr.component.rememberQrBitmapPainter
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.receiveAsFlow
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ProximityQRScreen(
     navController: NavController,
@@ -72,6 +73,13 @@ fun ProximityQRScreen(
 ) {
     val state: State by viewModel.viewState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    val nearbyDevicesPermissions = PermissionUtils.nearbyDevicesPermissions
+
+    val permissionState =
+        rememberMultiplePermissionsState(permissions = nearbyDevicesPermissions) { results ->
+            viewModel.setEvent(Event.PermissionsResult(results.values.all { it }))
+        }
 
     ContentScreen(
         isLoading = state.isLoading,
@@ -81,11 +89,16 @@ fun ProximityQRScreen(
     ) { paddingValues ->
         Content(
             state = state,
-            effectFlow = viewModel.effect,
-            onNavigationRequested = { navigationEffect ->
-                when (navigationEffect) {
+            paddingValues = paddingValues,
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect
+            .onEach { effect ->
+                when (effect) {
                     is Effect.Navigation.SwitchScreen -> {
-                        navController.navigate(navigationEffect.screenRoute) {
+                        navController.navigate(effect.screenRoute) {
                             popUpTo(ProximityScreens.QR.screenRoute) {
                                 inclusive = true
                             }
@@ -95,14 +108,25 @@ fun ProximityQRScreen(
                     is Effect.Navigation.Pop -> {
                         navController.popBackStack()
                     }
+
+                    is Effect.Permission.RequestNearbyDevices -> {
+                        permissionState.launchMultiplePermissionRequest()
+                    }
+
+                    is Effect.Permission.GoToAppSettings -> {
+                        context.openAppSettings()
+                    }
                 }
-            },
-            paddingValues = paddingValues,
-        )
+            }.collect()
     }
 
     OneTimeLaunchedEffect {
-        viewModel.setEvent(Event.Init)
+        viewModel.setEvent(
+            Event.Init(
+                permissionsGranted = permissionState.allPermissionsGranted,
+                shouldShowRationale = permissionState.shouldShowRationale,
+            ),
+        )
     }
 
     LifecycleEffect(
@@ -133,8 +157,6 @@ fun ProximityQRScreen(
 @Composable
 private fun Content(
     state: State,
-    effectFlow: Flow<Effect>,
-    onNavigationRequested: (navigationEffect: Effect.Navigation) -> Unit,
     paddingValues: PaddingValues,
 ) {
     val qrSize = screenWidthInDp(true) / 1.4f
@@ -165,15 +187,6 @@ private fun Content(
         }
 
         SimplifiedNFCFooter(paddingValues)
-    }
-
-    LaunchedEffect(Unit) {
-        effectFlow
-            .onEach { effect ->
-                when (effect) {
-                    is Effect.Navigation -> onNavigationRequested(effect)
-                }
-            }.collect()
     }
 }
 
@@ -231,8 +244,6 @@ private fun ContentPreview() {
                     error = null,
                     qrCode = "some qr code",
                 ),
-            effectFlow = Channel<Effect>().receiveAsFlow(),
-            onNavigationRequested = {},
             paddingValues = PaddingValues(SPACING_MEDIUM.dp),
         )
     }
