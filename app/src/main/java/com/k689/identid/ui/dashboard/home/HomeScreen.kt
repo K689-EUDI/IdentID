@@ -52,14 +52,15 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MobileFriendly
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -295,24 +296,7 @@ fun HomeScreen(
                     }
                 }
 
-                QuickActions(
-                    modifier =
-                        Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(
-                                start = SPACING_LARGE.dp,
-                                bottom = SPACING_LARGE.dp + paddingValues.calculateBottomPadding(),
-                            ),
-                    onAuthenticateClick = { viewModel.setEvent(Event.AuthenticateCard.AuthenticatePressed) },
-                    onSignDocumentClick = { viewModel.setEvent(Event.SignDocumentCard.SignDocumentPressed) },
-                )
-
-                FloatingActionButton(
-                    onClick = { viewModel.setEvent(Event.AddDocumentsClicked) },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(4.dp),
+                Column(
                     modifier =
                         Modifier
                             .align(Alignment.BottomEnd)
@@ -320,11 +304,34 @@ fun HomeScreen(
                                 end = SPACING_LARGE.dp,
                                 bottom = SPACING_LARGE.dp + paddingValues.calculateBottomPadding(),
                             ),
+                    verticalArrangement = Arrangement.spacedBy(SPACING_SMALL.dp),
+                    horizontalAlignment = Alignment.End,
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = "Add document",
-                    )
+                    FloatingActionButton(
+                        onClick = { viewModel.setEvent(Event.AddDocumentsClicked) },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = stringResource(R.string.home_screen_content_description_add_document),
+                        )
+                    }
+
+                    FloatingActionButton(
+                        onClick = { viewModel.setEvent(Event.AuthenticateCard.AuthenticatePressed) },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.QrCodeScanner,
+                            contentDescription = stringResource(R.string.home_screen_authenticate),
+                        )
+                    }
                 }
             }
         }
@@ -389,39 +396,7 @@ fun HomeScreen(
     }
 }
 
-@Composable
-private fun QuickActions(
-    modifier: Modifier = Modifier,
-    onAuthenticateClick: () -> Unit,
-    onSignDocumentClick: () -> Unit,
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(32.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        shadowElevation = 4.dp,
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
-        ) {
-            IconButton(onClick = onAuthenticateClick) {
-                Icon(
-                    imageVector = Icons.Default.MobileFriendly,
-                    contentDescription = "Authenticate",
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                )
-            }
-            IconButton(onClick = onSignDocumentClick) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Sign document",
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                )
-            }
-        }
-    }
-}
+
 
 @Composable
 private fun TopBar(

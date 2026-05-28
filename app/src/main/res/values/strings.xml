@@ -17,16 +17,16 @@
     <!-- region Generic -->
     <string name="generic_error_message">Oups! Something went wrong</string>
     <string name="generic_error_description">If the issue persists, please contact customer support</string>
-    <string name="generic_error_button_retry">TRY AGAIN</string>
+    <string name="generic_error_button_retry">Try again</string>
     <string name="generic_network_error_message">You are not connected to the internet</string>
     <string name="generic_error_retry">Please try again</string>
     <string name="generic_cancel">Cancel</string>
-    <string name="generic_cancel_capitalized" tools:ignore="ButtonCase">CANCEL</string>
-    <string name="generic_next_capitalized" tools:ignore="ButtonCase">NEXT</string>
-    <string name="generic_confirm_capitalized" tools:ignore="ButtonCase">CONFIRM</string>
+    <string name="generic_cancel_capitalized" tools:ignore="ButtonCase">Cancel</string>
+    <string name="generic_next_capitalized" tools:ignore="ButtonCase">Next</string>
+    <string name="generic_confirm_capitalized" tools:ignore="ButtonCase">Confirm</string>
     <string name="generic_continue">Continue</string>
-    <string name="generic_continue_capitalized" tools:ignore="ButtonCase">CONTINUE</string>
-    <string name="generic_enable_capitalized" tools:ignore="ButtonCase">ENABLE</string>
+    <string name="generic_continue_capitalized" tools:ignore="ButtonCase">Continue</string>
+    <string name="generic_enable_capitalized" tools:ignore="ButtonCase">Enable</string>
     <string name="generic_success">Success</string>
     <string name="generic_close">Close</string>
     <string name="generic_ok">OK</string>
@@ -167,10 +167,10 @@
     <string name="quick_pin_create_success_description">To activate your wallet, connect to your National System to add your Digital ID.</string>
     <string name="quick_pin_create_success_no_activation_description">Your wallet is ready for use.</string>
     <string name="quick_pin_create_success_btn">Add my Digital ID</string>
-    <string name="quick_pin_create_success_no_activation_btn">GO TO HOME</string>
+    <string name="quick_pin_create_success_no_activation_btn">Go to Home</string>
     <string name="quick_pin_change_success_text">@string/generic_success</string>
     <string name="quick_pin_change_success_description">You successfully changed the pin</string>
-    <string name="quick_pin_change_success_btn">BACK TO HOME</string>
+    <string name="quick_pin_change_success_btn">Back to Home</string>
     <string name="quick_pin_bottom_sheet_cancel_title">Cancel pin changing?</string>
     <string name="quick_pin_bottom_sheet_cancel_subtitle">Cancel will redirect you back to the home without changing the pin</string>
     <string name="quick_pin_bottom_sheet_cancel_primary_button_text">@string/generic_continue_capitalized</string>
@@ -178,7 +178,7 @@
     <!--endregion-->
     <!-- region Request Screen -->
     <string name="request_header_description">The following transaction requires your permission and authentication.</string>
-    <string name="request_header_main_text">DATA SHARING REQUEST</string>
+    <string name="request_header_main_text">Data sharing request</string>
     <string name="request_relying_party_default_name">@string/generic_default_relying_party_name</string>
     <string name="request_relying_party_description">requests the following</string>
     <string name="request_warning_text">Please review carefully before sharing your data.</string>
@@ -494,8 +494,8 @@
     <string name="document_details_document_credentials_info_expanded_text_subtitle">For security reasons, this document can be shared a limited number of times before it needs to be re-issued by the issuing authority.</string>
     <string name="document_details_document_credentials_info_expanded_button_update_now_text">Issue new</string>
     <string name="document_details_document_credentials_info_expanded_button_hide_text">Hide</string>
-    <string name="document_details_main_section_text">DOCUMENT DETAILS</string>
-    <string name="document_details_issuer_section_text">ISSUER</string>
+    <string name="document_details_main_section_text">Document details</string>
+    <string name="document_details_issuer_section_text">Issuer</string>
     <string name="document_details_secondary_button_text">Delete document</string>
     <string name="document_details_bottom_sheet_bookmark_info_title">Saved to favourites</string>
     <string name="document_details_bottom_sheet_bookmark_info_message">The document was successfully added to your favourites list.</string>
@@ -517,9 +517,9 @@
     <string name="transaction_details_report_transaction_message">If you believe this relying party has unlawfully requested personal data, you can report this transaction to the authorities.</string>
     <string name="transaction_details_request_deletion_button">Request data deletion</string>
     <string name="transaction_details_report_transaction_button">Report suspicious transaction</string>
-    <string name="transaction_details_data_shared_section_title">DATA SHARED</string>
+    <string name="transaction_details_data_shared_section_title">Data shared</string>
     <string name="transaction_details_data_shared_prefix_id">transactionDetailsDataSharedId</string>
-    <string name="transaction_details_data_signed_section_title">DATA SIGNED</string>
+    <string name="transaction_details_data_signed_section_title">Data signed</string>
     <string name="transaction_details_data_signed_prefix_id">transactionDetailsDataSignedId</string>
     <string name="transaction_details_collapsed_supporting_text">@string/generic_view_details</string>
     <!--endregion-->
@@ -571,7 +571,7 @@
     <string name="issuance_document_offer_error_invalid_txcode_format">Invalid transaction code format. Length should be between %1$d to %2$d digits and only numeric characters are allowed.</string>
     <string name="issuance_document_offer_error_no_document">Unable to fetch and process the credential offer</string>
     <string name="issuance_document_offer_description">The following transaction requires your permission and authentication.</string>
-    <string name="issuance_document_offer_header_main_text">ISSUANCE REQUEST</string>
+    <string name="issuance_document_offer_header_main_text">Issuance request</string>
     <string name="issuance_document_offer_relying_party_default_name">@string/generic_default_issuer_name</string>
     <string name="issuance_document_offer_relying_party_description">wants to add the following</string>
     <!--endregion-->
@@ -583,19 +583,19 @@
     <string name="issuance_generic_error">Something went wrong issuing your document(s)</string>
     <!--endregion-->
     <!-- region Document Categories -->
-    <string name="document_category_government">GOVERNMENT</string>
-    <string name="document_category_travel">TRAVEL</string>
-    <string name="document_category_finance">FINANCE</string>
-    <string name="document_category_education">EDUCATION</string>
-    <string name="document_category_health">HEALTH</string>
-    <string name="document_category_social_security">SOCIAL SECURITY</string>
-    <string name="document_category_retail">RETAIL</string>
-    <string name="document_category_other">OTHER</string>
+    <string name="document_category_government">Government</string>
+    <string name="document_category_travel">Travel</string>
+    <string name="document_category_finance">Finance</string>
+    <string name="document_category_education">Education</string>
+    <string name="document_category_health">Health</string>
+    <string name="document_category_social_security">Social security</string>
+    <string name="document_category_retail">Retail</string>
+    <string name="document_category_other">Other</string>
     <!--endregion-->
     <!-- region Transaction Categories -->
-    <string name="transaction_category_today">TODAY</string>
-    <string name="transaction_category_this_week">THIS WEEK</string>
-    <string name="transaction_category_month_year">MONTH</string>
+    <string name="transaction_category_today">Today</string>
+    <string name="transaction_category_this_week">This week</string>
+    <string name="transaction_category_month_year">Month</string>
     <!--endregion-->
     <!-- region Wallet Transfer -->
     <string name="transfer_side_menu_move_wallet">Move wallet to new device</string>
@@ -608,7 +608,7 @@
     <string name="transfer_approval_subtitle">Review the documents that will be transferred to the new device and enter your PIN to confirm</string>
     <string name="transfer_approval_pin_label">Enter PIN</string>
     <string name="transfer_approval_pin_error">Invalid PIN</string>
-    <string name="transfer_approval_confirm_button" tools:ignore="ButtonCase">CONFIRM TRANSFER</string>
+    <string name="transfer_approval_confirm_button" tools:ignore="ButtonCase">Confirm Transfer</string>
     <string name="transfer_approval_pid_label">Personal ID</string>
     <string name="transfer_receive_title">Receive Wallet</string>
     <string name="transfer_receive_subtitle">Choose how to connect to the other device</string>
@@ -623,11 +623,11 @@
     <string name="transfer_receive_nfc_hold_devices">Hold devices close together</string>
     <string name="transfer_document_list_title">Documents Found</string>
     <string name="transfer_document_list_subtitle">The following documents will be re-issued on this device</string>
-    <string name="transfer_document_list_import_button" tools:ignore="ButtonCase">IMPORT DOCUMENTS</string>
+    <string name="transfer_document_list_import_button" tools:ignore="ButtonCase">Import Documents</string>
     <string name="transfer_import_complete_title">Transfer Complete</string>
     <string name="transfer_import_complete_subtitle">Your documents have been processed</string>
     <string name="transfer_import_status_success">Successfully imported</string>
-    <string name="transfer_import_done_button" tools:ignore="ButtonCase">DONE</string>
+    <string name="transfer_import_done_button" tools:ignore="ButtonCase">Done</string>
     <string name="transfer_receive_qr_permission_denied_message">Location permission is required for nearby device transfer. Please grant it in Settings.</string>
     <string name="transfer_receive_qr_open_settings">Open Settings</string>
     <string name="transfer_error_invalid_qr">Invalid QR code. Please try again.</string>
