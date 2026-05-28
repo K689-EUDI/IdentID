@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -65,6 +66,7 @@ fun PseudonymDetailScreen(
         isLoading = state.isLoading,
         onBack = { viewModel.setEvent(Event.Pop) },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        imePaddingConfig = com.k689.identid.ui.component.content.ImePaddingConfig.NO_PADDING,
     ) { paddingValues ->
         Content(
             state = state,
@@ -161,6 +163,8 @@ private fun Content(
         ) {
             Text(stringResource(R.string.pseudonym_detail_delete))
         }
+
+        Spacer(modifier = Modifier.height(80.dp).imePadding())
     }
 }
 

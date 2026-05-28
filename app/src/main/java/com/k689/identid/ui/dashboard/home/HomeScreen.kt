@@ -52,7 +52,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.MobileFriendly
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
@@ -83,6 +82,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -309,10 +309,11 @@ fun HomeScreen(
                 ) {
                     FloatingActionButton(
                         onClick = { viewModel.setEvent(Event.AddDocumentsClicked) },
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                         shape = RoundedCornerShape(16.dp),
                         elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(4.dp),
+                        modifier = Modifier.size(56.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Add,
@@ -322,14 +323,16 @@ fun HomeScreen(
 
                     FloatingActionButton(
                         onClick = { viewModel.setEvent(Event.AuthenticateCard.AuthenticatePressed) },
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                         shape = RoundedCornerShape(16.dp),
                         elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(4.dp),
+                        modifier = Modifier.size(72.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.QrCodeScanner,
                             contentDescription = stringResource(R.string.home_screen_authenticate),
+                            modifier = Modifier.size(32.dp),
                         )
                     }
                 }

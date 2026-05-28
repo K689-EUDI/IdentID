@@ -71,6 +71,7 @@ data class State(
     val customTitle: String? = null,
     val customColor: Long? = null,
     val isEditingCustomization: Boolean = false,
+    val isKeyboardVisible: Boolean = false,
 ) : ViewState
 
 sealed class Event : ViewEvent {
@@ -125,6 +126,8 @@ sealed class Event : ViewEvent {
     data object ResetCustomization : Event()
 
     data class ToggleEditingCustomization(val isEditing: Boolean) : Event()
+
+    data class OnKeyboardVisibilityChanged(val isVisible: Boolean) : Event()
 }
 
 sealed class Effect : ViewSideEffect {
@@ -296,6 +299,10 @@ class DocumentDetailsViewModel(
 
             is Event.ToggleEditingCustomization -> {
                 setState { copy(isEditingCustomization = event.isEditing) }
+            }
+
+            is Event.OnKeyboardVisibilityChanged -> {
+                setState { copy(isKeyboardVisible = event.isVisible) }
             }
         }
     }
