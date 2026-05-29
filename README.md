@@ -1,66 +1,102 @@
+<div align="center">
+
+<img src="media/icon.webp" alt="IdentID" width="120" />
+
 # IdentID
 
-IdentID - Android EUDI wallet and identity manager
+**Your digital identity, in your pocket.**
 
-Overview
+A modern Android wallet for the European Digital Identity (EUDI) ecosystem - manage credentials, sign documents, and share identity data securely via NFC and QR.
 
-- IdentID is an Android app (Kotlin + Jetpack Compose) implementing an EUDI wallet core and local storage for identity data. It provides secure wallet features, onboarding, and local DB storage for credentials.
+[![License: EUPL 1.2](https://img.shields.io/badge/License-EUPL%201.2-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.x-purple.svg)](https://kotlinlang.org)
+[![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4.svg)](https://developer.android.com/jetpack/compose)
 
-Key technologies
+</div>
 
-- **Language:** Kotlin
-- **UI:** Jetpack Compose
-- **Architecture:** Android app module (`app/`), modular Gradle build (Kotlin DSL)
-- **Storage:** Local database (Room / generated schemas present under `app/schemas`)
-- **EUDI Wallet Core:** integrated wallet/core functionality for EUDI operations
-- **Build system:** Gradle
+---
 
-Getting started
-Prerequisites:
+## Demo
 
-- Android Studio (latest stable) or command-line Android SDK
-- JDK 11 or newer
-- Android SDK and platform tools configured in `local.properties`
+https://github.com/user-attachments/assets/ident-id-demo.mp4
 
-Build and run (from project root):
+<video src="media/ident-id-demo.mp4" width="100%" controls></video>
+
+---
+
+## Features
+
+|     | Feature                  | Description                                           |
+| --- | ------------------------ | ----------------------------------------------------- |
+| 🪪  | **Document Management**  | Store and browse identity documents and loyalty cards |
+| ✍️  | **Document Signing**     | Digitally sign documents using RQES                   |
+| 📲  | **Proximity Sharing**    | Share credentials face-to-face via QR code and BLE    |
+| 📡  | **NFC Transfer**         | Tap-to-share wallet data between devices              |
+| 🔐  | **Biometric & PIN Auth** | Protect access with fingerprint or device PIN         |
+| 🎭  | **Pseudonyms**           | Manage pseudonymous identities for privacy            |
+| 📷  | **QR Issuance**          | Add new credentials by scanning issuer QR codes       |
+| 🔄  | **Device Transfer**      | Migrate your wallet to a new phone seamlessly         |
+
+---
+
+## Tech Stack
+
+- **Kotlin** + **Jetpack Compose** - fully declarative UI
+- **EUDI Wallet Core** - standards-compliant European Digital Identity operations
+- **Room** - encrypted local credential storage
+- **NFC & BLE** - proximity engagement and transfer
+- **Baseline Profiles** - optimized startup performance
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Android Studio (latest stable)
+- JDK 11+
+- Android SDK configured in `local.properties`
+
+### Build & Run
 
 ```bash
+# Debug build
 ./gradlew assembleDebug
 ./gradlew installDebug
 ```
 
-`release` consumes the shared baseline profile. `debug` stays debuggable and is intended for normal local development.
+Or open the project in Android Studio and run the `app` module on a device/emulator.
 
-Generate Baseline Profiles:
+### Configuration
+
+Copy `secrets.defaults.properties` and override with your secure values as needed.
+
+### Generate Baseline Profile
 
 ```bash
 ./gradlew :app:generateBaselineProfile
 ```
 
-This uses the `baselineprofile` module to capture app startup and a core dashboard navigation journey on a connected device or emulator.
+Uses the `baselineprofile` module to capture startup and navigation journeys. The generated profile is consumed by the `release` variant.
 
-The generated profile is merged into the shared app source set at `app/src/main/generated/baselineProfiles/baseline-prof.txt`.
+---
 
-The `release` variant consumes that shared profile.
+## Project Structure
 
-Open the project in Android Studio and run the `app` module on a device/emulator.
+```
+app/            Main Android application module
+├── src/main    Source code & resources
+├── schemas/    Room DB schema exports
+baselineprofile/  Macro-benchmark profile generation
+gradle/         Version catalog & wrapper
+media/          App icon and demo video
+```
 
-Configuration
+---
 
-- Secrets defaults are in `secrets.defaults.properties` - copy or override with your own secure values as needed.
-- `local.properties` should point to your Android SDK installation.
+## License
 
-Project layout (high level)
+Licensed under the [EUPL, Version 1.2](LICENSE).
 
-- `app/` - main Android module
-- `app/src/main` - source code and resources
-- `app/schemas` - generated DB schema artifacts
-- `build.gradle.kts`, `settings.gradle.kts` - top-level Gradle/Kotlin DSL config
-
-License
-
-- See the `LICENSE` file in the repository root for license details.
-
-Contact
-
-- Repo: K689-EUDI/IdentID
+© European Commission
