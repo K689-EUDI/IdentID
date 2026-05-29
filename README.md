@@ -1,6 +1,6 @@
 # IdentID
 
-IdentID — Android EUDI wallet and identity manager
+IdentID - Android EUDI wallet and identity manager
 
 Overview
 
@@ -47,15 +47,15 @@ Open the project in Android Studio and run the `app` module on a device/emulator
 
 Configuration
 
-- Secrets defaults are in `secrets.defaults.properties` — copy or override with your own secure values as needed.
+- Secrets defaults are in `secrets.defaults.properties` - copy or override with your own secure values as needed.
 - `local.properties` should point to your Android SDK installation.
 
 Project layout (high level)
 
-- `app/` — main Android module
-- `app/src/main` — source code and resources
-- `app/schemas` — generated DB schema artifacts
-- `build.gradle.kts`, `settings.gradle.kts` — top-level Gradle/Kotlin DSL config
+- `app/` - main Android module
+- `app/src/main` - source code and resources
+- `app/schemas` - generated DB schema artifacts
+- `build.gradle.kts`, `settings.gradle.kts` - top-level Gradle/Kotlin DSL config
 
 License
 
