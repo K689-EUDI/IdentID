@@ -19,7 +19,7 @@ A modern Android wallet for the European Digital Identity (EUDI) ecosystem - man
 
 ## Demo
 
-https://github.com/K689-EUDI/IdentID/raw/refs/heads/main/media/ident-id-demo.mp4
+https://github.com/user-attachments/assets/d0ce198e-c460-4b2f-932e-e24bd4b09a2a
 
 ---
 
