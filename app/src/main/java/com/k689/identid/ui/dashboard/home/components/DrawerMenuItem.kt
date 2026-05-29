@@ -28,6 +28,7 @@ enum class DrawerMenuItem(
     Pseudonyms(titleRes = R.string.pseudonym_list_title, route = DashboardScreens.PseudonymList.screenRoute, groupName = DrawerMenuType.OPERATION),
     LoyaltyCards(titleRes = R.string.loyalty_cards_title, route = DashboardScreens.LoyaltyCards.screenRoute, groupName = DrawerMenuType.OPERATION),
     Transactions(titleRes = R.string.transactions_screen_title, route = DashboardScreens.Transactions.screenRoute, groupName = DrawerMenuType.OPERATION),
+    SignDocument(titleRes = R.string.home_screen_sign_document, route = DashboardScreens.DocumentSign.screenRoute, groupName = DrawerMenuType.OPERATION),
 
     Preferences(titleRes = R.string.preferences_screen_title, route = DashboardScreens.Preferences.screenRoute, groupName = DrawerMenuType.SETTINGS),
     ;

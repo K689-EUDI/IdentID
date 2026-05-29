@@ -347,6 +347,7 @@ private fun MainContent(
             modifier = Modifier.fillMaxWidth(),
             text = stringResource(R.string.issuance_add_document_scan_qr_footer_button_text),
             icon = AppIcons.QrScanner,
+            enabled = !state.isLoading && !state.noOptions,
             onClick = { onEventSend(Event.GoToQrScan) },
         )
     }
