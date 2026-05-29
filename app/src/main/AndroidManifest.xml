@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~ Copyright (c) 2026 European Commission
   ~
   ~ Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European
@@ -13,16 +14,13 @@
   ~ ANY KIND, either express or implied. See the Licence for the specific language
   ~ governing permissions and limitations under the Licence.
   -->
-
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
-
     <!-- Nearby Connections: legacy Bluetooth (API ≤ 30) -->
     <uses-permission
         android:name="android.permission.BLUETOOTH"
@@ -30,47 +28,37 @@
     <uses-permission
         android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />
-
     <!-- Nearby Connections: Bluetooth (API 31+) -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-
     <!-- Nearby Connections: Wi-Fi -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-
     <!-- Nearby Connections: Wi-Fi (API 32+) -->
     <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
-
-    <!-- Nearby Connections: Location — play-services-nearby checks internally -->
+    <!-- Nearby Connections: Location - play-services-nearby checks internally -->
     <uses-permission
         android:name="android.permission.ACCESS_COARSE_LOCATION"
         tools:remove="android:maxSdkVersion" />
     <uses-permission
         android:name="android.permission.ACCESS_FINE_LOCATION"
         tools:remove="android:maxSdkVersion" />
-
     <uses-feature
         android:name="android.hardware.nfc"
         android:required="false" />
-
     <uses-feature
         android:name="android.hardware.camera.any"
         android:required="true" />
-
     <uses-feature
         android:name="android.hardware.bluetooth"
         android:required="true" />
-
     <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
-
     <uses-feature
         android:name="android.hardware.wifi.aware"
         android:required="false" />
-
     <application
         android:name="com.k689.identid.app.Application"
         android:allowBackup="false"
@@ -85,7 +73,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EUDIWallet"
         tools:targetApi="34">
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -95,7 +82,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
-
         <service
             android:name=".service.NfcEngagementService"
             android:exported="true"
@@ -105,13 +91,11 @@
             <intent-filter>
                 <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
             </intent-filter>
-
             <!-- the following "@xml/nfc_engagement_apdu_service" in meta-data is provided by the library -->
             <meta-data
                 android:name="android.nfc.cardemulation.host_apdu_service"
                 android:resource="@xml/nfc_engagement_apdu_service" />
         </service>
-
         <service
             android:name=".service.TransferNfcEngagementService"
             android:exported="true"
@@ -121,12 +105,10 @@
             <intent-filter>
                 <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
             </intent-filter>
-
             <meta-data
                 android:name="android.nfc.cardemulation.host_apdu_service"
                 android:resource="@xml/transfer_nfc_apdu_service" />
         </service>
-
         <service
             android:name=".service.PseudonymCredentialProviderService"
             android:exported="true"
@@ -135,18 +117,15 @@
             <intent-filter>
                 <action android:name="android.service.credentials.CredentialProviderService" />
             </intent-filter>
-
             <meta-data
                 android:name="android.credentials.provider"
                 android:resource="@xml/credential_provider_config" />
         </service>
-
         <activity
             android:name=".service.PseudonymCredentialActivity"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:excludeFromRecents="true" />
-
         <activity
             android:name=".app.MainActivity"
             android:exported="true"
@@ -159,116 +138,85 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="${deepLinkHost}"
                     android:scheme="${deepLinkScheme}" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="${eudiOpenid4vpHost}"
                     android:scheme="${eudiOpenid4vpScheme}" />
-
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="${mdocOpenid4vpHost}"
                     android:scheme="${mdocOpenid4vpScheme}" />
-
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="${openid4vpHost}"
                     android:scheme="${openid4vpScheme}" />
-
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="${haipOpenid4vpHost}"
                     android:scheme="${haipOpenid4vpScheme}" />
-
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="${credentialOfferHost}"
                     android:scheme="${credentialOfferScheme}" />
-
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="${credentialOfferHaipHost}"
                     android:scheme="${credentialOfferHaipScheme}" />
-
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="${openId4VciAuthorizationHost}"
                     android:scheme="${openId4VciAuthorizationScheme}" />
-
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="${rqesHost}"
                     android:path="${rqesPath}"
                     android:scheme="${rqesScheme}" />
-
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="${rqesDocRetrievalHost}"
                     android:scheme="${rqesDocRetrievalScheme}" />
-
             </intent-filter>
         </activity>
-
     </application>
-
 </manifest>

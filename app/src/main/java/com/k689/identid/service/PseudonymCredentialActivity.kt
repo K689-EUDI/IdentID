@@ -90,7 +90,7 @@ class PseudonymCredentialActivity : Activity() {
                 val challengeStr = json.getString("challenge")
 
                 // Use clientDataHash from the caller (browser) if provided.
-                // Chrome constructs its own clientDataJSON and passes the hash —
+                // Chrome constructs its own clientDataJSON and passes the hash -
                 // we MUST sign with that hash, not our own.
                 val callerClientDataHash = callingRequest.clientDataHash
                 val clientDataJsonBytes: ByteArray?
@@ -128,7 +128,7 @@ class PseudonymCredentialActivity : Activity() {
                     result.attestationObject,
                     Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP,
                 )
-                // If caller provided clientDataHash, use a placeholder —
+                // If caller provided clientDataHash, use a placeholder -
                 // Chrome will replace it with its own clientDataJSON.
                 val clientDataJsonB64 = if (clientDataJsonBytes != null) {
                     Base64.encodeToString(
