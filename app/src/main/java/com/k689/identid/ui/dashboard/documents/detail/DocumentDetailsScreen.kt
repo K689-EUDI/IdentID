@@ -31,6 +31,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,7 +45,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -172,6 +177,7 @@ fun DocumentDetailsScreen(
         navigatableAction = ScreenNavigateAction.BACKABLE,
         onBack = { onEventSend(Event.Pop) },
         toolBarConfig = toolbarConfig,
+        imePaddingConfig = com.k689.identid.ui.component.content.ImePaddingConfig.ONLY_CONTENT,
         broadcastAction =
             BroadcastAction(
                 intentFilters = listOf(CoreActions.REVOCATION_WORK_REFRESH_DETAILS_ACTION),
@@ -251,7 +257,7 @@ private fun handleNavigationEffect(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun Content(
     state: State,
@@ -265,6 +271,17 @@ private fun Content(
     val layoutDirection = LocalLayoutDirection.current
     var topContentHeight by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
+    val scrollState = rememberScrollState()
+
+    val isImeVisible = WindowInsets.isImeVisible
+    LaunchedEffect(isImeVisible) {
+        onEventSend(Event.OnKeyboardVisibilityChanged(isImeVisible))
+        if (isImeVisible) {
+            scrollState.animateScrollTo(scrollState.maxValue)
+        } else {
+            scrollState.animateScrollTo(0)
+        }
+    }
 
     state.documentDetailsUi?.let { safeDocumentDetailsUi ->
         Box(
@@ -327,13 +344,19 @@ private fun Content(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
+                        .verticalScroll(
+                            state = scrollState,
+                            enabled = !state.isKeyboardVisible
+                        ),
             ) {
                 val topOffset = with(density) { (topContentHeight.toDp() - 24.dp).coerceAtLeast(0.dp) }
                 Spacer(modifier = Modifier.height(topOffset))
 
                 FauxModalDetailsPanel(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 600.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = if (state.isKeyboardVisible) 1000.dp else 600.dp),
                     onEventSend = onEventSend,
                     sectionTitle = if (state.isEditingCustomization) stringResource(R.string.document_details_edit_customization_title) else stringResource(R.string.document_details_main_section_text),
                     documentDetailsUi = safeDocumentDetailsUi,
@@ -685,6 +708,13 @@ private fun EditCustomizationContent(
                 Text(stringResource(R.string.document_details_edit_customization_button_save))
             }
         }
+
+        if (state.isKeyboardVisible) {
+            VSpacer.Custom(600)
+        }
+
+        VSpacer.Custom(80)
+        Spacer(modifier = Modifier.imePadding())
     }
 }
 
@@ -920,31 +950,6 @@ private fun DocumentDetailsScreenPreview() {
 @Composable
 private fun ExpandableDocumentCredentialsSectionPreview() {
     PreviewTheme {
-        val availableCredentials = 3
-        val totalCredentials = 15
-        val documentCredentialsInfoUi =
-            DocumentCredentialsInfoUi(
-                availableCredentials = availableCredentials,
-                totalCredentials = totalCredentials,
-                title =
-                    stringResource(
-                        R.string.document_details_document_credentials_info_text,
-                        availableCredentials,
-                        totalCredentials,
-                    ),
-                collapsedInfo =
-                    DocumentCredentialsInfoUi.CollapsedInfo(
-                        moreInfoText = stringResource(R.string.document_details_document_credentials_info_more_info_text),
-                    ),
-                expandedInfo =
-                    DocumentCredentialsInfoUi.ExpandedInfo(
-                        subtitle = stringResource(R.string.document_details_document_credentials_info_expanded_text_subtitle),
-                        updateNowButtonText = stringResource(R.string.document_details_document_credentials_info_expanded_button_update_now_text),
-                        hideButtonText = stringResource(R.string.document_details_document_credentials_info_expanded_button_hide_text),
-                    ),
-                isExpanded = false,
-            )
-
         Column(
             modifier =
                 Modifier
